@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ร้านค้าออนไลน์ (ไฟล์เดียว) + แผงหลังบ้าน • Firebase</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    html, body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji'; }
+    .container { max-width: 1100px; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="container mx-auto px-4 py-3 flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-brand-600">
+          <path d="M2 6a2 2 0 0 1 2-2h3l1-2h8l1 2h3a2 2 0 0 1 2 2v2H2V6Zm0 4h20v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8Zm6 2v6h8v-6H8Z"/>
+        </svg>
+        <span class="font-semibold">ไฟล์เดียวช็อป</span>
+        <span id="appVersion" class="ml-2 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600"></span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <input id="searchInput" type="text" placeholder="ค้นหาสินค้า..." class="hidden md:block w-56 rounded-xl border border-slate-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+        <button id="openCartBtn" class="relative rounded-xl px-3 py-1.5 border border-slate-200 hover:bg-slate-100">
+          <span class="material-symbols-outlined">🛒</span>
+          <span id="cartCount" class="absolute -top-2 -right-2 text-xs bg-brand-600 text-white w-5 h-5 rounded-full grid place-items-center">0</span>
+        </button>
+        <button id="adminBtn" class="rounded-xl px-3 py-1.5 border border-slate-200 hover:bg-slate-100">ผู้ดูแล</button>
+        <button id="logoutBtn" class="hidden rounded-xl px-3 py-1.5 bg-slate-800 text-white hover:bg-slate-700">ออกจากระบบ</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto px-4 py-6 grid grid-cols-12 gap-6">
+    <!-- Catalog -->
+    <section class="col-span-12 lg:col-span-8" id="catalogSection">
+      <h2 class="text-xl font-semibold mb-3">รายการสินค้า</h2>
+      <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+      <div id="emptyCatalog" class="hidden border border-dashed rounded-xl p-6 text-center text-slate-500">ยังไม่มีสินค้า</div>
+    </section>
+
+    <!-- Cart -->
+    <aside class="col-span-12 lg:col-span-4">
+      <div class="sticky top-[76px]">
+        <div class="rounded-2xl border bg-white shadow-sm">
+          <div class="p-4 border-b flex items-center justify-between">
+            <h3 class="font-semibold">ตะกร้าสินค้า</h3>
+            <button id="clearCartBtn" class="text-sm text-slate-500 hover:text-slate-700">ล้างตะกร้า</button>
+          </div>
+          <div id="cartItems" class="p-4 flex flex-col gap-3 max-h-[50vh] overflow-auto"></div>
+          <div class="p-4 border-t">
+            <div class="flex justify-between mb-3">
+              <span>รวม</span>
+              <span id="cartTotal" class="font-semibold">฿0</span>
+            </div>
+            <button id="checkoutBtn" class="w-full rounded-xl bg-brand-600 text-white px-4 py-2 hover:bg-brand-700">สั่งซื้อ</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Admin Panel -->
+    <section id="adminPanel" class="col-span-12 hidden">
+      <div class="rounded-2xl border bg-white shadow-sm">
+        <div class="p-4 border-b flex items-center justify-between">
+          <h3 class="font-semibold">แผงจัดการ</h3>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-slate-500">เวอร์ชันไฟล์</span>
+            <input id="versionInput" class="w-28 rounded-lg border border-slate-200 px-2 py-1" placeholder="1.0.0" />
+            <button id="updateVersionBtn" class="rounded-lg bg-slate-800 text-white px-3 py-1.5">อัพเดต & รีโหลดผู้ใช้</button>
+          </div>
+        </div>
+        <div class="p-4 grid gap-6 md:grid-cols-2">
+          <form id="productForm" class="rounded-xl border p-4 grid gap-3">
+            <h4 class="font-semibold">เพิ่ม/แก้ไขสินค้า</h4>
+            <input type="hidden" id="productId" />
+            <input id="nameInput" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="ชื่อสินค้า" required />
+            <textarea id="descInput" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="รายละเอียด" rows="3"></textarea>
+            <input id="priceInput" type="number" min="0" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="ราคา (บาท)" required />
+            <input id="stockInput" type="number" min="0" class="rounded-lg border border-slate-200 px-3 py-2" placeholder="สต็อก" required />
+            <input id="imageInput" type="file" accept="image/*" class="rounded-lg border border-slate-200 px-3 py-2" />
+            <div class="flex gap-2">
+              <button class="rounded-lg bg-brand-600 text-white px-4 py-2" id="saveProductBtn" type="submit">บันทึก</button>
+              <button class="rounded-lg border px-4 py-2" type="reset" id="resetProductBtn">ล้างฟอร์ม</button>
+              <button class="rounded-lg border px-4 py-2 hidden" id="deleteProductBtn" type="button">ลบ</button>
+            </div>
+          </form>
+
+          <div class="rounded-xl border p-4">
+            <h4 class="font-semibold mb-3">สินค้าทั้งหมด</h4>
+            <div id="adminProducts" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+            <div id="emptyAdmin" class="hidden text-sm text-slate-500">ยังไม่มีสินค้า</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+      <h3 class="text-lg font-semibold mb-4">เข้าสู่ระบบผู้ดูแล</h3>
+      <form id="authForm" class="grid gap-3">
+        <input id="emailInput" type="email" placeholder="อีเมล" class="rounded-lg border border-slate-200 px-3 py-2" required />
+        <input id="passInput" type="password" placeholder="รหัสผ่าน" class="rounded-lg border border-slate-200 px-3 py-2" required />
+        <button class="rounded-lg bg-slate-800 text-white px-4 py-2">เข้าสู่ระบบ</button>
+      </form>
+      <p class="text-xs text-slate-500 mt-3">* ใช้ Firebase Authentication (Email/Password)</p>
+      <button id="closeAuthBtn" class="mt-4 text-sm text-slate-600 hover:text-slate-800">ปิด</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden bg-slate-900 text-white px-4 py-2 rounded-xl shadow-lg"></div>
+
+  <!-- Firebase SDK (v10 modular) -->
+  <script type="module">
+    /*********************************
+     * 1) ตั้งค่า Firebase ของคุณ
+     *********************************/
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js'
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js'
+    import { getFirestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js'
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js'
+
+    const firebaseConfig = {
+     apiKey: "AIzaSyAmsiJelUN1V8C9mCC1Osy-uSZAuk3M7Lw",
+  authDomain: "test-95403.firebaseapp.com",
+  databaseURL: "https://test-95403-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "test-95403",
+  storageBucket: "test-95403.firebasestorage.app",
+  messagingSenderId: "30370027223",
+  appId: "1:30370027223:web:be434cdf70770ea44f4292",
+    }
+
+    const app = initializeApp(firebaseConfig)
+    const auth = getAuth(app)
+    const db = getFirestore(app)
+    const storage = getStorage(app)
+
+    /*********************************
+     * 2) Utilities
+     *********************************/
+    const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 })
+    const $ = (sel) => document.querySelector(sel)
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel))
+    const toast = (msg) => { const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 1800) }
+
+    /*********************************
+     * 3) Realtime App Version -> บังคับรีโหลดเมื่อไฟล์อัพเดต
+     *    - ผู้ใช้ทุกคน subscribe doc: meta/app { version: '1.0.0' }
+     *    - ผู้ดูแลกดปุ่ม "อัพเดต & รีโหลดผู้ใช้" เพื่อ set เวอร์ชันใหม่
+     *    - ทุกเบราว์เซอร์จะเห็นการเปลี่ยนแปลงและรีโหลดอัตโนมัติ
+     *********************************/
+    const metaDocRef = doc(db, 'meta', 'app')
+    let currentVersion = localStorage.getItem('appVersion') || '1.0.0'
+    const appVersionEl = $('#appVersion')
+    appVersionEl.textContent = `v${currentVersion}`
+
+    // subscribe เวอร์ชัน
+    onSnapshot(metaDocRef, (snap) => {
+      const data = snap.data() || { version: '1.0.0' }
+      const v = data.version || '1.0.0'
+      if (v !== currentVersion) {
+        // บังคับรีโหลด เพื่อดึงไฟล์ใหม่จาก GitHub/Hosting
+        localStorage.setItem('appVersion', v)
+        location.reload()
+      }
+    })
+
+    // ปุ่มอัพเดตเวอร์ชันในแผงหลังบ้าน
+    $('#updateVersionBtn').addEventListener('click', async () => {
+      const v = $('#versionInput').value.trim() || new Date().toISOString().slice(0,19).replace(/[:T]/g,'')
+      await setDoc(metaDocRef, { version: v, updatedAt: serverTimestamp() }, { merge: true })
+      toast('อัพเดตเวอร์ชันแล้ว ทุกคนจะรีโหลดอัตโนมัติ')
+    })
+
+    /*********************************
+     * 4) Catalog (Firestore + Storage)
+     *********************************/
+    const productsCol = collection(db, 'products')
+
+    const renderProductCard = (p) => {
+      const div = document.createElement('div')
+      div.className = 'rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow'
+      div.innerHTML = `
+        <div class="aspect-square bg-slate-100 overflow-hidden">
+          <img src="${p.imageURL || 'https://dummyimage.com/600x600/eee/aaa&text=No+Image'}" alt="${p.name}" class="w-full h-full object-cover">
+        </div>
+        <div class="p-3 grid gap-1">
+          <div class="font-semibold line-clamp-2">${p.name}</div>
+          <div class="text-sm text-slate-500 line-clamp-2">${p.desc || ''}</div>
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-semibold">${fmt.format(p.price || 0)}</span>
+            <button data-id="${p.id}" class="addToCart rounded-lg bg-brand-600 text-white px-3 py-1.5 disabled:opacity-50" ${p.stock>0?'':'disabled'}>เพิ่มลงตะกร้า</button>
+          </div>
+          <div class="text-xs text-slate-500">สต็อก: ${p.stock ?? 0}</div>
+        </div>`
+      return div
+    }
+
+    const productsGrid = $('#productsGrid')
+    const emptyCatalog = $('#emptyCatalog')
+
+    const qProducts = query(productsCol, orderBy('createdAt','desc'))
+    onSnapshot(qProducts, (snap) => {
+      productsGrid.innerHTML = ''
+      if (snap.empty) { emptyCatalog.classList.remove('hidden'); return }
+      emptyCatalog.classList.add('hidden')
+      snap.forEach(docu => {
+        const p = { id: docu.id, ...docu.data() }
+        productsGrid.appendChild(renderProductCard(p))
+      })
+    })
+
+    /*********************************
+     * 5) Simple Cart (LocalStorage)
+     *********************************/
+    const cartKey = 'cartItems'
+    const getCart = () => JSON.parse(localStorage.getItem(cartKey) || '[]')
+    const setCart = (items) => { localStorage.setItem(cartKey, JSON.stringify(items)); renderCart() }
+
+    const addToCart = (item) => {
+      const cart = getCart()
+      const idx = cart.findIndex(i => i.id === item.id)
+      if (idx >= 0) cart[idx].qty += 1
+      else cart.push({ ...item, qty: 1 })
+      setCart(cart)
+      toast('เพิ่มลงตะกร้าแล้ว')
+    }
+
+    const renderCart = () => {
+      const items = getCart()
+      const cont = $('#cartItems')
+      cont.innerHTML = ''
+      if (!items.length) cont.innerHTML = '<div class="text-sm text-slate-500">ยังไม่มีสินค้าในตะกร้า</div>'
+      let total = 0
+      items.forEach(it => {
+        total += (it.price || 0) * it.qty
+        const row = document.createElement('div')
+        row.className = 'flex gap-3'
+        row.innerHTML = `
+          <img src="${it.imageURL || 'https://dummyimage.com/64x64/eee/aaa'}" class="w-16 h-16 rounded-lg object-cover"/>
+          <div class="flex-1">
+            <div class="font-medium">${it.name}</div>
+            <div class="text-sm text-slate-500">${fmt.format(it.price)} • x${it.qty}</div>
+            <div class="mt-2 flex gap-2 text-sm">
+              <button data-id="${it.id}" class="qtyDec px-2 border rounded">-</button>
+              <button data-id="${it.id}" class="qtyInc px-2 border rounded">+</button>
+              <button data-id="${it.id}" class="qtyDel px-2 border rounded">ลบ</button>
+            </div>
+          </div>`
+        cont.appendChild(row)
+      })
+      $('#cartTotal').textContent = fmt.format(total)
+      $('#cartCount').textContent = items.reduce((a,b)=>a+b.qty,0)
+    }
+
+    renderCart()
+
+    document.body.addEventListener('click', (e) => {
+      const btn = e.target.closest('button')
+      if (!btn) return
+
+      if (btn.classList.contains('addToCart')) {
+        const id = btn.dataset.id
+        // ดึงสินค้าจาก DOM card
+        const card = btn.closest('.border')
+        const name = card.querySelector('.font-semibold').textContent
+        const price = Number(card.querySelector('.font-semibold + .text-sm')?.textContent) // not reliable
+        // ให้อ่านจาก attributes ที่ฝังไม่ได้ง่าย จึงอ่านใหม่จาก productsGrid snapshot แทน
+        // ในที่นี้ เราจะ query Firestore เฉพาะชิ้นเดียวเพื่อความถูกต้อง
+        addSingleProductToCart(id)
+      }
+
+      if (btn.id === 'clearCartBtn') setCart([])
+
+      if (btn.classList.contains('qtyDec')) { const id = btn.dataset.id; const cart = getCart(); const i = cart.findIndex(x=>x.id===id); if(i>=0){cart[i].qty=Math.max(1,cart[i].qty-1); setCart(cart)} }
+      if (btn.classList.contains('qtyInc')) { const id = btn.dataset.id; const cart = getCart(); const i = cart.findIndex(x=>x.id===id); if(i>=0){cart[i].qty+=1; setCart(cart)} }
+      if (btn.classList.contains('qtyDel')) { const id = btn.dataset.id; const cart = getCart().filter(x=>x.id!==id); setCart(cart) }
+
+      if (btn.id === 'adminBtn') { toggleAdmin(true) }
+      if (btn.id === 'closeAuthBtn') { toggleAuth(false) }
+      if (btn.id === 'logoutBtn') { signOut(auth) }
+    })
+
+    async function addSingleProductToCart(id){
+      const ref = doc(db, 'products', id)
+      const d = await getDoc(ref)
+      if (d.exists()) {
+        const p = { id: d.id, ...d.data() }
+        addToCart({ id: p.id, name: p.name, price: p.price || 0, imageURL: p.imageURL || '' })
+      }
+    }
+
+    $('#checkoutBtn').addEventListener('click', async () => {
+      const items = getCart()
+      if (!items.length) return toast('ตะกร้าว่าง')
+      // ตัวอย่าง: สร้างออเดอร์ลง Firestore (แบบไม่ชำระเงินจริง)
+      const order = { items, total: items.reduce((s,i)=>s+i.price*i.qty,0), createdAt: serverTimestamp(), status: 'pending' }
+      await addDoc(collection(db, 'orders'), order)
+      setCart([])
+      toast('สร้างคำสั่งซื้อแล้ว (ตัวอย่าง)')
+    })
+
+    /*********************************
+     * 6) Admin — Auth + CRUD
+     *********************************/
+    const adminPanel = $('#adminPanel')
+    const authModal = $('#authModal')
+
+    function toggleAdmin(open){
+      if (auth.currentUser) adminPanel.classList.toggle('hidden', !open)
+      else toggleAuth(true)
+    }
+    function toggleAuth(open){ authModal.classList.toggle('hidden', !open); authModal.classList.toggle('flex', open) }
+
+    $('#authForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const email = $('#emailInput').value.trim()
+      const pass = $('#passInput').value.trim()
+      try {
+        await signInWithEmailAndPassword(auth, email, pass)
+      } catch (err) {
+        console.error(err)
+        toast('เข้าสู่ระบบไม่สำเร็จ')
+      }
+    })
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        $('#logoutBtn').classList.remove('hidden')
+        toggleAuth(false)
+        adminPanel.classList.remove('hidden')
+        $('#versionInput').value = localStorage.getItem('appVersion') || '1.0.0'
+      } else {
+        $('#logoutBtn').classList.add('hidden')
+        adminPanel.classList.add('hidden')
+      }
+    })
+
+    const adminProducts = $('#adminProducts')
+    onSnapshot(qProducts, (snap) => {
+      adminProducts.innerHTML = ''
+      if (snap.empty) $('#emptyAdmin').classList.remove('hidden')
+      else $('#emptyAdmin').classList.add('hidden')
+      snap.forEach(docu => {
+        const p = { id: docu.id, ...docu.data() }
+        const card = document.createElement('div')
+        card.className = 'rounded-xl border overflow-hidden bg-white'
+        card.innerHTML = `
+          <img src="${p.imageURL || 'https://dummyimage.com/600x600/eee/aaa'}" class="w-full aspect-square object-cover"/>
+          <div class="p-2 text-sm grid gap-1">
+            <div class="font-medium">${p.name}</div>
+            <div>${fmt.format(p.price || 0)} • สต็อก ${p.stock ?? 0}</div>
+            <div class="flex gap-2 mt-1">
+              <button data-id="${p.id}" class="editProd border rounded px-2 py-1">แก้ไข</button>
+              <button data-id="${p.id}" class="delProd border rounded px-2 py-1">ลบ</button>
+            </div>
+          </div>`
+        adminProducts.appendChild(card)
+      })
+    })
+
+    adminProducts.addEventListener('click', async (e) => {
+      const b = e.target.closest('button')
+      if (!b) return
+      const id = b.dataset.id
+      if (b.classList.contains('editProd')) {
+        const d = await getDoc(doc(db,'products',id))
+        if (d.exists()) {
+          const p = d.data()
+          $('#productId').value = id
+          $('#nameInput').value = p.name || ''
+          $('#descInput').value = p.desc || ''
+          $('#priceInput').value = p.price || 0
+          $('#stockInput').value = p.stock || 0
+          $('#deleteProductBtn').classList.remove('hidden')
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+        }
+      }
+      if (b.classList.contains('delProd')) {
+        if (confirm('ลบสินค้านี้?')) {
+          const d = await getDoc(doc(db,'products',id))
+          const p = d.data() || {}
+          if (p.imagePath) {
+            try { await deleteObject(sRef(storage, p.imagePath)) } catch {}
+          }
+          await deleteDoc(doc(db,'products',id))
+          toast('ลบแล้ว')
+        }
+      }
+    })
+
+    $('#productForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id = $('#productId').value
+      const name = $('#nameInput').value.trim()
+      const desc = $('#descInput').value.trim()
+      const price = Number($('#priceInput').value)
+      const stock = Number($('#stockInput').value)
+      let imageURL = ''
+      let imagePath = ''
+
+      const file = $('#imageInput').files[0]
+      if (file) {
+        const path = `products/${Date.now()}_${file.name}`
+        const ref = sRef(storage, path)
+        await uploadBytes(ref, file)
+        imageURL = await getDownloadURL(ref)
+        imagePath = path
+      }
+
+      if (id) {
+        const ref = doc(db,'products',id)
+        const before = await getDoc(ref)
+        const prev = before.data() || {}
+        await updateDoc(ref, { name, desc, price, stock, ...(imageURL ? { imageURL, imagePath } : {}) })
+        if (imageURL && prev.imagePath) { try { await deleteObject(sRef(storage, prev.imagePath)) } catch {} }
+        toast('อัพเดตสินค้าแล้ว')
+      } else {
+        await addDoc(productsCol, { name, desc, price, stock, imageURL, imagePath, createdAt: serverTimestamp() })
+        toast('เพิ่มสินค้าแล้ว')
+      }
+
+      e.target.reset()
+      $('#productId').value = ''
+      $('#deleteProductBtn').classList.add('hidden')
+    })
+
+    $('#resetProductBtn').addEventListener('click', ()=>{
+      $('#productId').value = ''
+      $('#deleteProductBtn').classList.add('hidden')
+    })
+
+    $('#deleteProductBtn').addEventListener('click', async ()=>{
+      const id = $('#productId').value
+      if (!id) return
+      if (!confirm('ลบสินค้านี้?')) return
+      const d = await getDoc(doc(db,'products',id))
+      const p = d.data() || {}
+      if (p.imagePath) { try { await deleteObject(sRef(storage, p.imagePath)) } catch {} }
+      await deleteDoc(doc(db,'products',id))
+      toast('ลบแล้ว')
+      $('#productForm').reset()
+      $('#productId').value = ''
+      $('#deleteProductBtn').classList.add('hidden')
+    })
+
+    /*********************************
+     * 7) Search (client-side filter)
+     *********************************/
+    $('#searchInput').addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase()
+      $$('#productsGrid > div').forEach(card => {
+        const name = card.querySelector('.font-semibold').textContent.toLowerCase()
+        const desc = (card.querySelector('.text-sm.text-slate-500')?.textContent || '').toLowerCase()
+        card.classList.toggle('hidden', !(name.includes(q) || desc.includes(q)))
+      })
+    })
+
+    /*********************************
+     * 8) UX bits
+     *********************************/
+    $('#openCartBtn').addEventListener('click', ()=>{
+      document.querySelector('aside').scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+
+  </script>
+
+  <!-- Helpful notes / Deployment & Security (comments only)
+  1) เปิดบริการที่ Firebase Console:
+     - Authentication: Email/Password (สร้าง user ผู้ดูแล)
+     - Firestore Database
+     - Storage
+
+  2) ตั้งกติกา Firestore Rules (อย่างน้อย):
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /products/{id} { allow read: if true; allow write: if request.auth != null; }
+         match /orders/{id}   { allow read, write: if true; } // ตัวอย่าง เปิดอ่านสาธารณะ (ปรับตามจริง)
+         match /meta/{doc}    { allow read: if true; allow write: if request.auth != null; }
+       }
+     }
+
+     และ Storage Rules:
+     rules_version = '2';
+     service firebase.storage { match /b/{bucket}/o {
+       match /products/{allPaths=**} { allow read: if true; allow write: if request.auth != null; }
+     } }
+
+  3) Auto-Reload ทุกเบราว์เซอร์เมื่อไฟล์อัพเดต:
+     - ที่แผงหลังบ้าน กดปุ่ม "อัพเดต & รีโหลดผู้ใช้" -> เปลี่ยนค่า meta/app.version
+     - ทุก client onSnapshot(meta/app) จะ location.reload() และดึงไฟล์ล่าสุดจาก GitHub Pages / Firebase Hosting
+     - แนะนำใช้ Cache Busting ที่ระดับ CDN/Hosting ด้วย (เช่น เพิ่ม query ?v=เวอร์ชันให้ไฟล์ asset ถ้ามีหลายไฟล์)
+
+  4) อัพขึ้น GitHub:
+     - สร้าง repo และวางไฟล์นี้เป็น index.html ที่ root
+     - เปิด GitHub Pages (Branch: main, Folder: root)
+     - หรือใช้ Firebase Hosting: firebase init hosting -> deploy
+
+  5) หมายเหตุ: แอปนี้เป็นตัวอย่างแบบไฟล์เดียวเพื่อความง่าย หากใช้งานจริง ควรแยกไฟล์/เพิ่มการตรวจสอบสิทธิ์, จัดการคำสั่งซื้อ, ชำระเงิน ฯลฯ
+  -->
+</body>
+</html>
