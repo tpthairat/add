@@ -1,0 +1,3169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบโอนย้ายข้าราชการ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-2xl border-b-4 border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-18">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center mr-4 shadow-lg transform hover:scale-105 transition-transform">
+                            <span class="text-blue-600 font-bold text-2xl">🏛️</span>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800">ระบบโอนย้ายข้าราชการ</h1>
+                            <p class="text-gray-600 text-xs">Government Transfer System</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="homeBtn" class="nav-btn bg-gray-100 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-medium shadow-lg">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                            </svg>
+                            หน้าหลัก
+                        </span>
+                    </button>
+                    <button id="allNewsBtn" class="nav-btn text-gray-700 hover:text-white px-5 py-2.5 rounded-xl hover:bg-blue-600 transition-all duration-300 font-medium">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"/>
+                            </svg>
+                            ประกาศทั้งหมด
+                        </span>
+                    </button>
+                    
+                    <!-- งานสอบราชการ Dropdown -->
+                    <div class="relative group">
+                        <button id="examBtn" class="nav-btn text-gray-700 hover:text-white px-5 py-2.5 rounded-xl hover:bg-blue-600 transition-all duration-300 font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            งานสอบราชการ
+                            <svg class="w-4 h-4 ml-2 transform group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute left-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0">
+                            <div class="p-2">
+                                <button onclick="showExamCategory('csc')" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-blue-200 transition-colors">
+                                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">ผ่าน กพ.</div>
+                                        <div class="text-xs text-gray-500">สอบผ่านคณะกรรมการข้าราชการพลเรือน</div>
+                                    </div>
+                                </button>
+                                <button onclick="showExamCategory('non-csc')" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-green-200 transition-colors">
+                                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">ไม่ผ่าน กพ.</div>
+                                        <div class="text-xs text-gray-500">สอบโดยหน่วยงานเจ้าสังกัด</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ประกาศรับโอนย้าย Dropdown -->
+                    <div class="relative group">
+                        <button id="transferBtn" class="nav-btn text-gray-700 hover:text-white px-5 py-2.5 rounded-xl hover:bg-blue-600 transition-all duration-300 font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            ประกาศรับโอนย้าย
+                            <svg class="w-4 h-4 ml-2 transform group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute left-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0">
+                            <div class="p-2">
+                                <button onclick="openTransferCategory('civil')" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-blue-200 transition-colors">
+                                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">ข้าราชการพลเรือน</div>
+                                        <div class="text-xs text-gray-500">กระทรวง ทบวง กรม</div>
+                                    </div>
+                                </button>
+                                <button onclick="openTransferCategory('local')" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-green-200 transition-colors">
+                                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">ข้าราชการท้องถิ่น</div>
+                                        <div class="text-xs text-gray-500">เทศบาล อบต. อบจ.</div>
+                                    </div>
+                                </button>
+                                <button onclick="openTransferCategory('independent')" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-violet-50 hover:text-purple-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-purple-200 transition-colors">
+                                        <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">องค์กรอิสระ</div>
+                                        <div class="text-xs text-gray-500">ตรวจเงินแผ่นดิน ป.ป.ช. ฯลฯ</div>
+                                    </div>
+                                </button>
+                                <button onclick="openTransferCategory('others')" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-orange-200 transition-colors">
+                                        <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">อื่นๆ</div>
+                                        <div class="text-xs text-gray-500">รัฐวิสาหกิจ หน่วยงานอื่น</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ลงประกาศ Dropdown -->
+                    <div class="relative group">
+                        <button id="postBtn" class="nav-btn bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition-all duration-300 font-medium shadow-lg flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                            </svg>
+                            ลงประกาศ
+                            <svg class="w-4 h-4 ml-2 transform group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute left-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0">
+                            <div class="p-2">
+                                <button onclick="showPostExam()" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-blue-200 transition-colors">
+                                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">งานสอบราชการ</div>
+                                        <div class="text-xs text-gray-500">ลงประกาศสอบแข่งขัน</div>
+                                    </div>
+                                </button>
+                                <button onclick="showPostTransfer()" class="flex items-center w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-600 rounded-xl transition-all duration-200 group/item">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 group-hover/item:bg-green-200 transition-colors">
+                                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">ประกาศรับโอนย้าย</div>
+                                        <div class="text-xs text-gray-500">ลงประกาศรับโอนย้าย</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="userInfo" class="hidden flex items-center space-x-3 bg-gray-100 rounded-xl px-4 py-2">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <span id="userEmail" class="text-sm text-gray-700 font-medium"></span>
+                        <button id="signOutBtn" class="text-red-600 hover:text-white text-sm font-medium hover:bg-red-500 px-2 py-1 rounded-lg transition-all">ออกจากระบบ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Home Page -->
+        <div id="homePage" class="page-content fade-in">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">ระบบโอนย้ายข้าราชการ</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">ศูนย์กลางข้อมูลการโอนย้ายข้าราชการ ติดตามข่าวสารและประกาศการโอนย้ายได้ที่นี่</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-full">
+                            <span class="text-2xl">📋</span>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-800">ข่าวโอนย้าย</h3>
+                            <p class="text-3xl font-bold text-blue-600" id="newsCount">12</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <span class="text-2xl">👥</span>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-800">ข้าราชการ</h3>
+                            <p class="text-3xl font-bold text-green-600">1,247</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-full">
+                            <span class="text-2xl">🏢</span>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-800">หน่วยงาน</h3>
+                            <p class="text-3xl font-bold text-purple-600">89</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Latest News -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">ข่าวล่าสุด</h3>
+                <div id="latestNews" class="space-y-4">
+                    <!-- News items will be populated here -->
+                </div>
+                <div class="text-center mt-6">
+                    <button id="viewAllNews" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">ดูข่าวทั้งหมด</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- News Page -->
+        <div id="newsPage" class="page-content hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">ข่าวโอนย้ายข้าราชการ</h2>
+                <div class="flex space-x-4">
+                    <input type="text" id="searchNews" placeholder="ค้นหาข่าว..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select id="filterDepartment" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">ทุกหน่วยงาน</option>
+                        <option value="กระทรวงศึกษาธิการ">กระทรวงศึกษาธิการ</option>
+                        <option value="กระทรวงมหาดไทย">กระทรวงมหาดไทย</option>
+                        <option value="กระทรวงสาธารณสุข">กระทรวงสาธารณสุข</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="newsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- News cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Exam Page -->
+        <div id="examPage" class="page-content hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">งานสอบราชการ</h2>
+                <p class="text-xl text-gray-600">ข้อมูลการสอบแข่งขันเข้ารับราชการ</p>
+            </div>
+
+            <!-- Exam Categories -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <!-- กพ. Exams -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">สอบผ่าน กพ.</h3>
+                        <p class="text-gray-600">การสอบแข่งขันเข้ารับราชการผ่านคณะกรรมการข้าราชการพลเรือน</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-blue-800 mb-2">📊 สถิติการสอบ</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-blue-600">ตำแหน่งเปิดสอบ:</span>
+                                    <span class="font-semibold">25 ตำแหน่ง</span>
+                                </div>
+                                <div>
+                                    <span class="text-blue-600">จำนวนอัตรา:</span>
+                                    <span class="font-semibold">450 อัตรา</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showExamCategory('csc')" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        ดูรายละเอียดการสอบ กพ.
+                    </button>
+                </div>
+
+                <!-- Non-กพ. Exams -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">สอบไม่ผ่าน กพ.</h3>
+                        <p class="text-gray-600">การสอบแข่งขันเข้ารับราชการโดยหน่วยงานเจ้าสังกัดเอง</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-green-800 mb-2">📊 สถิติการสอบ</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-green-600">ตำแหน่งเปิดสอบ:</span>
+                                    <span class="font-semibold">18 ตำแหน่ง</span>
+                                </div>
+                                <div>
+                                    <span class="text-green-600">จำนวนอัตรา:</span>
+                                    <span class="font-semibold">320 อัตรา</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showExamCategory('non-csc')" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        ดูรายละเอียดการสอบไม่ผ่าน กพ.
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white p-8">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold mb-2">สถิติการสอบราชการ ปี 2567</h3>
+                    <p class="text-purple-100">ข้อมูลการสอบแข่งขันเข้ารับราชการทั้งหมด</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold mb-2">43</div>
+                        <div class="text-purple-100">ตำแหน่งทั้งหมด</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold mb-2">770</div>
+                        <div class="text-purple-100">อัตราว่าง</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold mb-2">15,420</div>
+                        <div class="text-purple-100">ผู้สมัครสอบ</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold mb-2">1:20</div>
+                        <div class="text-purple-100">อัตราการแข่งขัน</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exam Category Page -->
+        <div id="examCategoryPage" class="page-content hidden">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-8">
+                    <button id="backToExam" class="mr-4 p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h2 id="examCategoryTitle" class="text-3xl font-bold text-gray-800">การสอบผ่าน กพ.</h2>
+                        <p id="examCategoryDesc" class="text-gray-600 mt-1">การสอบแข่งขันเข้ารับราชการผ่านคณะกรรมการข้าราชการพลเรือน</p>
+                    </div>
+                </div>
+
+                <!-- Filter and Search -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <input type="text" id="searchExam" placeholder="ค้นหาตำแหน่ง..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <select id="filterExamDepartment" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">ทุกหน่วยงาน</option>
+                                <option value="กระทรวงศึกษาธิการ">กระทรวงศึกษาธิการ</option>
+                                <option value="กระทรวงมหาดไทย">กระทรวงมหาดไทย</option>
+                                <option value="กระทรวงสาธารณสุข">กระทรวงสาธารณสุข</option>
+                                <option value="กระทรวงการคลัง">กระทรวงการคลัง</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="filterExamStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="open">เปิดรับสมัคร</option>
+                                <option value="closed">ปิดรับสมัคร</option>
+                                <option value="testing">กำลังสอบ</option>
+                                <option value="announced">ประกาศผล</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exam List -->
+                <div id="examList" class="space-y-6">
+                    <!-- Exam items will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Exam Page -->
+        <div id="postExamPage" class="page-content hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">ลงประกาศงานสอบราชการ</h2>
+                    
+                    <form id="postExamForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อตำแหน่ง</label>
+                                <input type="text" id="examPosition" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">หน่วยงาน</label>
+                                <select id="examDepartment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">เลือกหน่วยงาน</option>
+                                    <option value="กระทรวงศึกษาธิการ">กระทรวงศึกษาธิการ</option>
+                                    <option value="กระทรวงมหาดไทย">กระทรวงมหาดไทย</option>
+                                    <option value="กระทรวงสาธารณสุข">กระทรวงสาธารณสุข</option>
+                                    <option value="กระทรวงการคลัง">กระทรวงการคลัง</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">จำนวนอัตรา</label>
+                                <input type="number" id="examPositionsCount" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ระดับการศึกษา</label>
+                                <select id="examEducation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">เลือกระดับการศึกษา</option>
+                                    <option value="ปริญญาตรี">ปริญญาตรี</option>
+                                    <option value="ปริญญาโท">ปริญญาโท</option>
+                                    <option value="ปริญญาเอก">ปริญญาเอก</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทการสอบ</label>
+                                <select id="examType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">เลือกประเภท</option>
+                                    <option value="csc">ผ่าน กพ.</option>
+                                    <option value="non-csc">ไม่ผ่าน กพ.</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">รายละเอียดงาน</label>
+                            <textarea id="examDescription" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">เงินเดือน</label>
+                                <input type="text" id="examSalary" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="15,000 - 25,000" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">สถานที่ปฏิบัติงาน</label>
+                                <input type="text" id="examLocation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">วันเริ่มรับสมัคร</label>
+                                <input type="date" id="examApplicationStart" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">วันสิ้นสุดรับสมัคร</label>
+                                <input type="date" id="examApplicationEnd" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">วันสอบ</label>
+                                <input type="date" id="examDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ไฟล์ประกาศ (PDF)</label>
+                            <input type="file" id="examFile" accept=".pdf" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium">เผยแพร่ประกาศสอบราชการ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Transfer Page -->
+        <div id="postTransferPage" class="page-content hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">ลงประกาศรับโอนย้าย</h2>
+                    
+                    <form id="postTransferForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">หัวข้อประกาศ</label>
+                                <input type="text" id="transferTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">หน่วยงาน</label>
+                                <select id="transferDepartment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">เลือกหน่วยงาน</option>
+                                    <option value="กระทรวงศึกษาธิการ">กระทรวงศึกษาธิการ</option>
+                                    <option value="กระทรวงมหาดไทย">กระทรวงมหาดไทย</option>
+                                    <option value="กระทรวงสาธารณสุข">กระทรวงสาธารณสุข</option>
+                                    <option value="กระทรวงการคลัง">กระทรวงการคลัง</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">จำนวนอัตรา</label>
+                                <input type="number" id="transferPositionsCount" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทข้าราชการ</label>
+                                <select id="transferType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">เลือกประเภท</option>
+                                    <option value="civil">ข้าราชการพลเรือน</option>
+                                    <option value="local">ข้าราชการท้องถิ่น</option>
+                                    <option value="independent">องค์กรอิสระ</option>
+                                    <option value="others">อื่นๆ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">เงินเดือน</label>
+                                <input type="text" id="transferSalary" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="15,000 - 25,000" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">รายละเอียดประกาศ</label>
+                            <textarea id="transferDescription" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">สถานที่ปฏิบัติงาน</label>
+                                <input type="text" id="transferLocation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">คุณสมบัติ</label>
+                                <input type="text" id="transferRequirements" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">วันเริ่มรับสมัคร</label>
+                                <input type="date" id="transferApplicationStart" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">วันสิ้นสุดรับสมัคร</label>
+                                <input type="date" id="transferApplicationEnd" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ไฟล์ประกาศ (PDF)</label>
+                            <input type="file" id="transferFile" accept=".pdf" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium">เผยแพร่ประกาศรับโอนย้าย</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agency Page -->
+        <div id="agencyPage" class="page-content hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">ประกาศรับโอนย้าย</h2>
+                <p class="text-xl text-gray-600">ประกาศรับโอนย้ายข้าราชการแยกตามประเภท</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Civil Service Cards -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">ข้าราชการพลเรือน</h3>
+                        <p class="text-gray-600 text-sm mb-4">ประกาศรับโอนย้ายข้าราชการพลเรือนทุกกระทรวง</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="openTransferCategory('civil')" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                            ดูประกาศรับโอนย้าย
+                        </button>
+                        <div class="text-center text-sm text-gray-500">
+                            ประกาศใหม่: <span class="font-semibold text-blue-600">8 รายการ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.5-.5a2 2 0 00-1.806.547L12 17.5l-2.1-2.572a2 2 0 00-1.806-.547l-2.5.5a2 2 0 00-1.022.547l-1.5 1.5A2 2 0 003 17.5V19a2 2 0 002 2h14a2 2 0 002-2v-1.5a2 2 0 00-.072-1.072l-1.5-1.5z"/>
+                                <path d="M12 2a3 3 0 100 6 3 3 0 000-6z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">ข้าราชการท้องถิ่น</h3>
+                        <p class="text-gray-600 text-sm mb-4">ประกาศรับโอนย้ายข้าราชการท้องถิ่นทุกระดับ</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="openTransferCategory('local')" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                            ดูประกาศรับโอนย้าย
+                        </button>
+                        <div class="text-center text-sm text-gray-500">
+                            ประกาศใหม่: <span class="font-semibold text-green-600">5 รายการ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">องค์กรอิสระ</h3>
+                        <p class="text-gray-600 text-sm mb-4">ประกาศรับโอนย้ายองค์กรอิสระและหน่วยงานรัฐ</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="openTransferCategory('independent')" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                            ดูประกาศรับโอนย้าย
+                        </button>
+                        <div class="text-center text-sm text-gray-500">
+                            ประกาศใหม่: <span class="font-semibold text-purple-600">3 รายการ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                            <svg class="w-12 h-12 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">อื่นๆ</h3>
+                        <p class="text-gray-600 text-sm mb-4">ประกาศรับโอนย้ายหน่วยงานอื่นๆ และรัฐวิสาหกิจ</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="openTransferCategory('others')" class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors">
+                            ดูประกาศรับโอนย้าย
+                        </button>
+                        <div class="text-center text-sm text-gray-500">
+                            ประกาศใหม่: <span class="font-semibold text-orange-600">2 รายการ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Category Page -->
+        <div id="transferCategoryPage" class="page-content hidden">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-8">
+                    <button id="backToTransfer" class="mr-4 p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h2 id="transferCategoryTitle" class="text-3xl font-bold text-gray-800">ข้าราชการพลเรือน</h2>
+                        <p id="transferCategoryDesc" class="text-gray-600 mt-1">ประกาศรับโอนย้ายข้าราชการพลเรือนทุกกระทรวง</p>
+                    </div>
+                </div>
+
+                <!-- Filter and Search -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <input type="text" id="searchTransfer" placeholder="ค้นหาประกาศ..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <select id="filterTransferDepartment" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">ทุกหน่วยงาน</option>
+                                <option value="กระทรวงศึกษาธิการ">กระทรวงศึกษาธิการ</option>
+                                <option value="กระทรวงมหาดไทย">กระทรวงมหาดไทย</option>
+                                <option value="กระทรวงสาธารณสุข">กระทรวงสาธารณสุข</option>
+                                <option value="กระทรวงการคลัง">กระทรวงการคลัง</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="filterTransferStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="open">เปิดรับสมัคร</option>
+                                <option value="closing">ใกล้ปิดรับสมัคร</option>
+                                <option value="closed">ปิดรับสมัคร</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer List -->
+                <div id="transferList" class="space-y-6">
+                    <!-- Transfer items will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Agency Portal Page -->
+        <div id="agencyPortalPage" class="page-content hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center mb-8">
+                        <button id="backToAgencies" class="mr-4 p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="flex items-center">
+                            <div id="agencyLogo" class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                <!-- Logo will be inserted here -->
+                            </div>
+                            <div>
+                                <h2 id="agencyName" class="text-2xl font-bold text-gray-800">กระทรวงศึกษาธิการ</h2>
+                                <p class="text-gray-600">ระบบจัดการข่าวประกาศโอนย้าย</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agency Login -->
+                    <div id="agencyLogin">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">เข้าสู่ระบบหน่วยงาน</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                                    <input type="text" id="agencyUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="username">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                                    <input type="password" id="agencyPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="password">
+                                </div>
+                                <button id="agencyLoginBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">เข้าสู่ระบบ</button>
+                            </div>
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-yellow-800 mb-2">ข้อมูลสำหรับทดสอบ</h4>
+                                <p class="text-sm text-yellow-700 mb-2"><strong>ชื่อผู้ใช้:</strong> agency</p>
+                                <p class="text-sm text-yellow-700 mb-4"><strong>รหัสผ่าน:</strong> password</p>
+                                <div class="text-xs text-yellow-600">
+                                    <p>• สร้างข่าวประกาศโอนย้าย</p>
+                                    <p>• อัปโหลดไฟล์ประกาศ</p>
+                                    <p>• จัดการข้อมูลหน่วยงาน</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agency Dashboard -->
+                    <div id="agencyDashboard" class="hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-xl font-semibold text-gray-800">แดชบอร์ดหน่วยงาน</h3>
+                            <button id="agencyLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ออกจากระบบ</button>
+                        </div>
+
+                        <!-- Agency News Form -->
+                        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">สร้างข่าวประกาศโอนย้าย</h4>
+                            <form id="agencyNewsForm" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">หัวข้อประกาศ</label>
+                                        <input type="text" id="agencyNewsTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">จำนวนอัตรา</label>
+                                        <input type="number" id="agencyPositions" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">รายละเอียดประกาศ</label>
+                                    <textarea id="agencyNewsContent" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">วันที่เริ่มสมัคร</label>
+                                        <input type="date" id="agencyStartDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">วันที่สิ้นสุดสมัคร</label>
+                                        <input type="date" id="agencyEndDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">ไฟล์ประกาศ (PDF)</label>
+                                        <input type="file" id="agencyFile" accept=".pdf" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">เผยแพร่ประกาศ</button>
+                            </form>
+                        </div>
+
+                        <!-- Agency News List -->
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">ประกาศของหน่วยงาน</h4>
+                            <div id="agencyNewsList" class="space-y-4">
+                                <!-- Agency news will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Page -->
+        <div id="adminPage" class="page-content hidden">
+            <!-- Admin Login -->
+            <div id="adminLogin" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4 6h-3V6c0-.55-.45-1-1-1s-1 .45-1 1v2H8c-.55 0-1 .45-1 1s.45 1 1 1h3v2c0 .55.45 1 1 1s1-.45 1-1v-2h3c.55 0 1-.45 1-1s-.45-1-1-1z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">เข้าสู่ระบบแอดมิน</h2>
+                    <p class="text-gray-600">ใช้ Firebase Authentication</p>
+                </div>
+
+                <!-- Firebase Auth Methods -->
+                <div class="space-y-4">
+                    <!-- Email/Password Login -->
+                    <div id="emailLoginForm">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
+                                <input type="email" id="adminEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="admin@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                                <input type="password" id="adminPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="รหัสผ่าน">
+                            </div>
+                            <button id="emailLoginBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                                <span id="emailLoginText">เข้าสู่ระบบด้วยอีเมล</span>
+                                <div id="emailLoginSpinner" class="loading-spinner ml-2 hidden"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-2 bg-white text-gray-500">หรือ</span>
+                        </div>
+                    </div>
+
+                    <!-- Google Sign In -->
+                    <button id="googleSignInBtn" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span id="googleSignInText">เข้าสู่ระบบด้วย Google</span>
+                        <div id="googleSignInSpinner" class="loading-spinner ml-2 hidden"></div>
+                    </button>
+
+                    <!-- Anonymous Sign In -->
+                    <button id="anonymousSignInBtn" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                        <span id="anonymousSignInText">เข้าสู่ระบบแบบไม่ระบุตัวตน</span>
+                        <div id="anonymousSignInSpinner" class="loading-spinner ml-2 hidden"></div>
+                    </button>
+                </div>
+
+                <!-- Demo Info -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">🔥 Firebase Authentication</h4>
+                    <div class="text-sm text-blue-700 space-y-1">
+                        <p><strong>อีเมลทดสอบ:</strong> admin@test.com</p>
+                        <p><strong>รหัสผ่าน:</strong> password123</p>
+                        <p class="text-xs mt-2">หรือใช้ Google Sign-in หรือเข้าแบบไม่ระบุตัวตน</p>
+                    </div>
+                </div>
+
+                <!-- Create Account -->
+                <div class="mt-4 text-center">
+                    <button id="showCreateAccount" class="text-blue-600 hover:text-blue-800 text-sm">สร้างบัญชีใหม่</button>
+                </div>
+
+                <!-- Create Account Form -->
+                <div id="createAccountForm" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-semibold text-gray-800 mb-3">สร้างบัญชีแอดมินใหม่</h4>
+                    <div class="space-y-3">
+                        <input type="email" id="newAdminEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="อีเมลใหม่">
+                        <input type="password" id="newAdminPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)">
+                        <div class="flex space-x-2">
+                            <button id="createAccountBtn" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">สร้างบัญชี</button>
+                            <button id="cancelCreateAccount" class="flex-1 bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500 transition-colors text-sm">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div id="adminDashboard" class="hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">แดชบอร์ดแอดมิน</h2>
+                        <p class="text-gray-600 mt-1">ยินดีต้อนรับ <span id="adminDisplayName" class="font-semibold"></span></p>
+                    </div>
+                    <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">ออกจากระบบ</button>
+                </div>
+
+                <!-- Admin Tabs -->
+                <div class="bg-white rounded-xl shadow-lg">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex space-x-8 px-6">
+                            <button class="admin-tab active py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="manage-news">จัดการข่าว</button>
+                            <button class="admin-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="add-news">เพิ่มข่าวใหม่</button>
+                            <button class="admin-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="statistics">สถิติ</button>
+                            <button class="admin-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="firebase-info">Firebase Info</button>
+                        </nav>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Manage News Tab -->
+                        <div id="manage-news" class="admin-tab-content">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">จัดการข่าวโอนย้าย</h3>
+                            <div id="adminNewsTable" class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หัวข้อ</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หน่วยงาน</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="newsTableBody" class="bg-white divide-y divide-gray-200">
+                                        <!-- Table rows will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Add News Tab -->
+                        <div id="add-news" class="admin-tab-content hidden">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">เพิ่มข่าวโอนย้ายใหม่</h3>
+                            <form id="addNewsForm" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">หัวข้อข่าว</label>
+                                        <input type="text" id="newsTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">หน่วยงาน</label>
+                                        <select id="newsDepartment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                            <option value="">เลือกหน่วยงาน</option>
+                                            <option value="กระทรวงศึกษาธิการ">กระทรวงศึกษาธิการ</option>
+                                            <option value="กระทรวงมหาดไทย">กระทรวงมหาดไทย</option>
+                                            <option value="กระทรวงสาธารณสุข">กระทรวงสาธารณสุข</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">เนื้อหาข่าว</label>
+                                    <textarea id="newsContent" rows="6" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">วันที่ประกาศ</label>
+                                        <input type="date" id="newsDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">สถานะ</label>
+                                        <select id="newsStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option value="active">เผยแพร่</option>
+                                            <option value="draft">แบบร่าง</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">บันทึกข่าว</button>
+                            </form>
+                        </div>
+
+                        <!-- Statistics Tab -->
+                        <div id="statistics" class="admin-tab-content hidden">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">สถิติการใช้งาน</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div class="bg-blue-50 rounded-lg p-6">
+                                    <h4 class="text-lg font-medium text-blue-800">ข่าวทั้งหมด</h4>
+                                    <p class="text-3xl font-bold text-blue-600" id="totalNewsStats">12</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-6">
+                                    <h4 class="text-lg font-medium text-green-800">ข่าวเผยแพร่</h4>
+                                    <p class="text-3xl font-bold text-green-600" id="publishedNewsStats">10</p>
+                                </div>
+                                <div class="bg-yellow-50 rounded-lg p-6">
+                                    <h4 class="text-lg font-medium text-yellow-800">แบบร่าง</h4>
+                                    <p class="text-3xl font-bold text-yellow-600" id="draftNewsStats">2</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-6">
+                                    <h4 class="text-lg font-medium text-purple-800">ผู้เข้าชม</h4>
+                                    <p class="text-3xl font-bold text-purple-600">2,847</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Firebase Info Tab -->
+                        <div id="firebase-info" class="admin-tab-content hidden">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">ข้อมูล Firebase</h3>
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-3">ข้อมูลผู้ใช้ปัจจุบัน</h4>
+                                        <div id="currentUserInfo" class="space-y-2 text-sm">
+                                            <!-- User info will be populated here -->
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-3">การตั้งค่า Firebase</h4>
+                                        <div class="space-y-2 text-sm text-gray-600">
+                                            <p><strong>Project ID:</strong> <span id="firebaseProjectId">demo-project</span></p>
+                                            <p><strong>Auth Domain:</strong> <span id="firebaseAuthDomain">demo-project.firebaseapp.com</span></p>
+                                            <p><strong>Database URL:</strong> <span id="firebaseDatabaseUrl">demo-project-default-rtdb.firebaseio.com</span></p>
+                                            <p><strong>Auth Status:</strong> <span id="authStatus" class="text-green-600 font-semibold">เชื่อมต่อแล้ว</span></p>
+                                            <p><strong>Database Status:</strong> <span id="databaseStatus" class="text-green-600 font-semibold">เชื่อมต่อแล้ว</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 pt-6 border-t border-gray-200">
+                                    <h4 class="font-semibold text-gray-800 mb-3">สถิติ Firebase Realtime Database</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="bg-blue-50 rounded-lg p-4">
+                                            <div class="text-sm text-blue-600 mb-1">ข่าวใน Database</div>
+                                            <div class="font-bold text-blue-800" id="firebaseNewsCount">0</div>
+                                        </div>
+                                        <div class="bg-green-50 rounded-lg p-4">
+                                            <div class="text-sm text-green-600 mb-1">การเชื่อมต่อ</div>
+                                            <div class="font-bold text-green-800" id="connectionStatus">Real-time</div>
+                                        </div>
+                                        <div class="bg-purple-50 rounded-lg p-4">
+                                            <div class="text-sm text-purple-600 mb-1">อัปเดตล่าสุด</div>
+                                            <div class="font-bold text-purple-800 text-xs" id="lastUpdate">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 pt-6 border-t border-gray-200">
+                                    <h4 class="font-semibold text-gray-800 mb-3">การทดสอบ Database</h4>
+                                    <div class="flex space-x-3">
+                                        <button id="testDatabaseBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                            ทดสอบการเชื่อมต่อ
+                                        </button>
+                                        <button id="refreshDataBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                            รีเฟรชข้อมูล
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white font-bold">🏛️</span>
+                        </div>
+                        <h3 class="text-lg font-semibold">ระบบโอนย้ายข้าราชการ</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm">
+                        ศูนย์กลางข้อมูลการโอนย้ายข้าราชการ ติดตามข่าวสารและประกาศการโอนย้ายได้ที่นี่
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">เมนูหลัก</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" onclick="showPage('home')" class="text-gray-300 hover:text-white transition-colors">หน้าหลัก</a></li>
+                        <li><a href="#" onclick="showPage('news')" class="text-gray-300 hover:text-white transition-colors">ประกาศทั้งหมด</a></li>
+                        <li><a href="#" onclick="showExamCategory('csc')" class="text-gray-300 hover:text-white transition-colors">งานสอบราชการ</a></li>
+                        <li><a href="#" onclick="openTransferCategory('civil')" class="text-gray-300 hover:text-white transition-colors">ประกาศรับโอนย้าย</a></li>
+                        <li><a href="#" onclick="showPostExam()" class="text-gray-300 hover:text-white transition-colors">ลงประกาศ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
+                    <div class="space-y-2 text-sm text-gray-300">
+                        <p>📧 info@transfer.go.th</p>
+                        <p>📞 02-123-4567</p>
+                        <p>🏢 กรุงเทพมหานคร 10400</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">
+                    © 2024 ระบบโอนย้ายข้าราชการ. สงวนลิขสิทธิ์.
+                </p>
+                
+                <!-- Admin Access Button -->
+                <div class="mt-4 md:mt-0">
+                    <button id="adminBtn" class="nav-btn bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors text-sm border border-gray-600">
+                        🔐 เข้าสู่ระบบแอดมิน
+                    </button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md mx-4 slide-in">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">✅</span>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">สำเร็จ!</h3>
+                <p id="successMessage" class="text-gray-600 mb-6">การดำเนินการเสร็จสิ้น</p>
+                <button id="closeModal" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md mx-4 slide-in">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">❌</span>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">เกิดข้อผิดพลาด</h3>
+                <p id="errorMessage" class="text-gray-600 mb-6">กรุณาลองใหม่อีกครั้ง</p>
+                <button id="closeErrorModal" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration (Demo - replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "demo-api-key",
+            authDomain: "demo-project.firebaseapp.com",
+            databaseURL: "https://demo-project-default-rtdb.firebaseio.com/",
+            projectId: "demo-project",
+            storageBucket: "demo-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "demo-app-id"
+        };
+
+        // Initialize Firebase
+        let app, auth, database;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            database = firebase.database();
+            console.log('Firebase initialized successfully');
+            
+            // Initialize database with sample data if empty
+            initializeDatabase();
+        } catch (error) {
+            console.log('Firebase initialization failed (Demo mode):', error.message);
+            // Fallback to demo mode
+            auth = null;
+            database = null;
+        }
+
+        // Firebase Database Functions
+        async function initializeDatabase() {
+            if (!database) return;
+            
+            try {
+                // Check if data already exists
+                const snapshot = await database.ref('news').once('value');
+                if (!snapshot.exists()) {
+                    // Initialize with sample data
+                    const sampleData = {
+                        1: {
+                            id: 1,
+                            title: "ประกาศโอนย้ายข้าราชการ กระทรวงศึกษาธิการ ครั้งที่ 1/2567",
+                            department: "กระทรวงศึกษาธิการ",
+                            content: "ประกาศโอนย้ายข้าราชการในสังกัดกระทรวงศึกษาธิการ จำนวน 150 อัตรา",
+                            date: "2024-01-15",
+                            startDate: "2024-02-01",
+                            endDate: "2024-02-15",
+                            positions: 150,
+                            status: "active",
+                            fileUrl: "sample-announcement-1.pdf",
+                            fileName: "ประกาศโอนย้าย_ศึกษาธิการ_1-2567.pdf",
+                            timestamp: Date.now()
+                        },
+                        2: {
+                            id: 2,
+                            title: "การโอนย้ายข้าราชการ กระทรวงมหาดไทย",
+                            department: "กระทรวงมหาดไทย",
+                            content: "ประกาศการโอนย้ายข้าราชการตำแหน่งนักบริหารงานท้องถิ่น จำนวน 75 อัตรา",
+                            date: "2024-01-10",
+                            startDate: "2024-01-20",
+                            endDate: "2024-02-05",
+                            positions: 75,
+                            status: "active",
+                            fileUrl: "sample-announcement-2.pdf",
+                            fileName: "ประกาศโอนย้าย_มหาดไทย_1-2567.pdf",
+                            timestamp: Date.now() - 86400000
+                        },
+                        3: {
+                            id: 3,
+                            title: "โอนย้ายบุคลากรทางการแพทย์ กระทรวงสาธารณสุข",
+                            department: "กระทรวงสาธารณสุข",
+                            content: "ประกาศโอนย้ายแพทย์และพยาบาลวิชาชีพ ไปปฏิบัติงานในพื้นที่ขาดแคลน",
+                            date: "2024-01-08",
+                            startDate: "2024-01-25",
+                            endDate: "2024-02-10",
+                            positions: 120,
+                            status: "active",
+                            fileUrl: "sample-announcement-3.pdf",
+                            fileName: "ประกาศโอนย้าย_สาธารณสุข_1-2567.pdf",
+                            timestamp: Date.now() - 172800000
+                        }
+                    };
+                    
+                    await database.ref('news').set(sampleData);
+                    console.log('Sample data initialized in Firebase');
+                }
+                
+                // Set up real-time listener
+                setupNewsListener();
+            } catch (error) {
+                console.log('Database initialization failed (Demo mode):', error.message);
+            }
+        }
+
+        // Real-time listener for news updates
+        function setupNewsListener() {
+            if (!database) return;
+            
+            let isFirstLoad = true;
+            
+            database.ref('news').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const previousCount = newsData.length;
+                    
+                    // Convert Firebase object to array
+                    newsData = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    
+                    // Show notification for new data (except first load)
+                    if (!isFirstLoad && newsData.length > previousCount) {
+                        showRealTimeNotification(`มีประกาศใหม่ ${newsData.length - previousCount} รายการ`);
+                    }
+                    
+                    // Update UI if we're on relevant pages
+                    if (currentPage === 'home') {
+                        loadLatestNews();
+                    } else if (currentPage === 'news') {
+                        loadAllNews();
+                    }
+                    
+                    // Update admin dashboard if logged in
+                    if (currentUser && currentPage === 'admin') {
+                        loadAdminNews();
+                        updateStats();
+                    }
+                    
+                    // Update Firebase status
+                    updateFirebaseStatus();
+                    
+                    console.log('News data updated from Firebase:', newsData.length, 'items');
+                    isFirstLoad = false;
+                }
+            });
+        }
+
+        function showRealTimeNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">🔔</span>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Add news to Firebase
+        async function addNewsToFirebase(newsItem) {
+            if (!database) {
+                // Fallback to local storage in demo mode
+                newsData.unshift(newsItem);
+                return newsItem;
+            }
+            
+            try {
+                const newsRef = database.ref('news').push();
+                newsItem.id = newsRef.key;
+                newsItem.timestamp = Date.now();
+                
+                await newsRef.set(newsItem);
+                console.log('News added to Firebase:', newsItem.title);
+                return newsItem;
+            } catch (error) {
+                console.error('Error adding news to Firebase:', error);
+                // Fallback to local storage
+                newsData.unshift(newsItem);
+                return newsItem;
+            }
+        }
+
+        // Update news in Firebase
+        async function updateNewsInFirebase(newsId, updates) {
+            if (!database) {
+                // Fallback to local update
+                const index = newsData.findIndex(n => n.id === newsId);
+                if (index !== -1) {
+                    newsData[index] = { ...newsData[index], ...updates };
+                }
+                return;
+            }
+            
+            try {
+                await database.ref(`news/${newsId}`).update({
+                    ...updates,
+                    lastModified: Date.now()
+                });
+                console.log('News updated in Firebase:', newsId);
+            } catch (error) {
+                console.error('Error updating news in Firebase:', error);
+            }
+        }
+
+        // Delete news from Firebase
+        async function deleteNewsFromFirebase(newsId) {
+            if (!database) {
+                // Fallback to local delete
+                newsData = newsData.filter(n => n.id !== newsId);
+                return;
+            }
+            
+            try {
+                await database.ref(`news/${newsId}`).remove();
+                console.log('News deleted from Firebase:', newsId);
+            } catch (error) {
+                console.error('Error deleting news from Firebase:', error);
+            }
+        }
+
+        // Local fallback data
+        let newsData = [];
+
+        let currentAgency = null;
+        let agencyNewsData = [];
+        let currentUser = null;
+        let currentPage = 'home';
+
+        // Sample exam data
+        let examData = {
+            csc: [
+                {
+                    id: 1,
+                    title: "นักวิชาการศึกษา",
+                    department: "กระทรวงศึกษาธิการ",
+                    level: "ปริญญาตรี",
+                    positions: 25,
+                    applicants: 850,
+                    examDate: "2024-03-15",
+                    applicationStart: "2024-02-01",
+                    applicationEnd: "2024-02-20",
+                    status: "open",
+                    salary: "15,000 - 25,000",
+                    location: "ทั่วประเทศ",
+                    description: "ปฏิบัติงานด้านการศึกษา วิเคราะห์หลักสูตร และพัฒนาการเรียนการสอน"
+                },
+                {
+                    id: 2,
+                    title: "นักวิชาการคลัง",
+                    department: "กระทรวงการคลัง",
+                    level: "ปริญญาตรี",
+                    positions: 15,
+                    applicants: 420,
+                    examDate: "2024-03-22",
+                    applicationStart: "2024-01-15",
+                    applicationEnd: "2024-02-05",
+                    status: "closed",
+                    salary: "15,000 - 28,000",
+                    location: "กรุงเทพฯ และปริมณฑล",
+                    description: "วิเคราะห์งบประมาณ จัดทำรายงานทางการเงิน และควบคุมการใช้จ่าย"
+                },
+                {
+                    id: 3,
+                    title: "แพทย์",
+                    department: "กระทรวงสาธารณสุข",
+                    level: "ปริญญาเอก",
+                    positions: 30,
+                    applicants: 180,
+                    examDate: "2024-04-10",
+                    applicationStart: "2024-02-15",
+                    applicationEnd: "2024-03-05",
+                    status: "testing",
+                    salary: "35,000 - 55,000",
+                    location: "โรงพยาบาลทั่วประเทศ",
+                    description: "ให้การรักษาพยาบาล ตรวจวินิจฉัยโรค และดูแลสุขภาพประชาชน"
+                }
+            ],
+            'non-csc': [
+                {
+                    id: 4,
+                    title: "ครูผู้ช่วย",
+                    department: "กระทรวงศึกษาธิการ",
+                    level: "ปริญญาตรี",
+                    positions: 45,
+                    applicants: 1250,
+                    examDate: "2024-03-08",
+                    applicationStart: "2024-01-20",
+                    applicationEnd: "2024-02-10",
+                    status: "announced",
+                    salary: "15,000 - 20,000",
+                    location: "โรงเรียนในสังกัด สพฐ.",
+                    description: "สอนในระดับประถมศึกษาและมัธยมศึกษา พัฒนาการเรียนรู้ของนักเรียน"
+                },
+                {
+                    id: 5,
+                    title: "เจ้าหน้าที่บริหารงานท้องถิ่น",
+                    department: "กระทรวงมหาดไทย",
+                    level: "ปริญญาตรี",
+                    positions: 20,
+                    applicants: 680,
+                    examDate: "2024-03-25",
+                    applicationStart: "2024-02-10",
+                    applicationEnd: "2024-02-28",
+                    status: "open",
+                    salary: "15,000 - 22,000",
+                    location: "องค์กรปกครองส่วนท้องถิ่น",
+                    description: "บริหารจัดการงานท้องถิ่น ประสานงานกับหน่วยงานต่างๆ"
+                },
+                {
+                    id: 6,
+                    title: "พยาบาลวิชาชีพ",
+                    department: "กระทรวงสาธารณสุข",
+                    level: "ปริญญาตรี",
+                    positions: 35,
+                    applicants: 520,
+                    examDate: "2024-04-05",
+                    applicationStart: "2024-02-20",
+                    applicationEnd: "2024-03-10",
+                    status: "open",
+                    salary: "18,000 - 30,000",
+                    location: "โรงพยาบาลและสถานีอนามัย",
+                    description: "ดูแลผู้ป่วย ให้การพยาบาล และสนับสนุนการรักษา"
+                }
+            ]
+        };
+
+        let currentExamCategory = null;
+        let currentTransferCategory = null;
+
+        // Sample transfer data by category
+        let transferData = {
+            civil: [
+                {
+                    id: 1,
+                    title: "ประกาศรับโอนย้ายนักวิชาการศึกษา",
+                    department: "กระทรวงศึกษาธิการ",
+                    positions: 25,
+                    location: "ทั่วประเทศ",
+                    applicationStart: "2024-02-01",
+                    applicationEnd: "2024-02-20",
+                    salary: "15,000 - 25,000",
+                    requirements: "ปริญญาตรีการศึกษา อายุไม่เกิน 35 ปี",
+                    description: "รับโอนย้ายนักวิชาการศึกษาเพื่อปฏิบัติงานในสำนักงานเขตพื้นที่การศึกษา",
+                    status: "open"
+                },
+                {
+                    id: 2,
+                    title: "ประกาศรับโอนย้ายนักวิชาการคลัง",
+                    department: "กระทรวงการคลัง",
+                    positions: 15,
+                    location: "กรุงเทพฯ และปริมณฑล",
+                    applicationStart: "2024-01-15",
+                    applicationEnd: "2024-02-05",
+                    salary: "18,000 - 30,000",
+                    requirements: "ปริญญาตรีการบัญชี เศรษฐศาสตร์ หรือสาขาที่เกี่ยวข้อง",
+                    description: "รับโอนย้ายนักวิชาการคลังเพื่อปฏิบัติงานด้านการเงินและงบประมาณ",
+                    status: "closed"
+                }
+            ],
+            local: [
+                {
+                    id: 3,
+                    title: "ประกาศรับโอนย้ายนักบริหารงานท้องถิ่น",
+                    department: "เทศบาลนครเชียงใหม่",
+                    positions: 8,
+                    location: "จังหวัดเชียงใหม่",
+                    applicationStart: "2024-02-10",
+                    applicationEnd: "2024-02-28",
+                    salary: "15,000 - 22,000",
+                    requirements: "ปริญญาตรีรัฐประศาสนศาสตร์ หรือสาขาที่เกี่ยวข้อง",
+                    description: "รับโอนย้ายข้าราชการท้องถิ่นเพื่อปฏิบัติงานด้านการบริหารจัดการ",
+                    status: "open"
+                },
+                {
+                    id: 4,
+                    title: "ประกาศรับโอนย้ายวิศวกรโยธา",
+                    department: "องค์การบริหารส่วนจังหวัดขอนแก่น",
+                    positions: 5,
+                    location: "จังหวัดขอนแก่น",
+                    applicationStart: "2024-02-05",
+                    applicationEnd: "2024-02-25",
+                    salary: "20,000 - 35,000",
+                    requirements: "ปริญญาตรีวิศวกรรมโยธา มีใบประกอบวิชาชีพ",
+                    description: "รับโอนย้ายวิศวกรโยธาเพื่อดูแลโครงการก่อสร้างและพัฒนาโครงสร้างพื้นฐาน",
+                    status: "open"
+                }
+            ],
+            independent: [
+                {
+                    id: 5,
+                    title: "ประกาศรับโอนย้ายนักวิชาการตรวจเงินแผ่นดิน",
+                    department: "สำนักงานการตรวจเงินแผ่นดิน",
+                    positions: 12,
+                    location: "ทั่วประเทศ",
+                    applicationStart: "2024-02-15",
+                    applicationEnd: "2024-03-05",
+                    salary: "18,000 - 28,000",
+                    requirements: "ปริญญาตรีการบัญชี การเงิน หรือสาขาที่เกี่ยวข้อง",
+                    description: "รับโอนย้ายนักวิชาการเพื่อปฏิบัติงานด้านการตรวจสอบการเงินการคลัง",
+                    status: "open"
+                }
+            ],
+            others: [
+                {
+                    id: 6,
+                    title: "ประกาศรับโอนย้ายวิศวกรไฟฟ้า",
+                    department: "การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย",
+                    positions: 10,
+                    location: "ทั่วประเทศ",
+                    applicationStart: "2024-02-20",
+                    applicationEnd: "2024-03-10",
+                    salary: "25,000 - 45,000",
+                    requirements: "ปริญญาตรีวิศวกรรมไฟฟ้า มีประสบการณ์ 2 ปีขึ้นไป",
+                    description: "รับโอนย้ายวิศวกรไฟฟ้าเพื่อปฏิบัติงานด้านการผลิตและจำหน่ายไฟฟ้า",
+                    status: "open"
+                }
+            ]
+        };
+
+        // Navigation
+        document.getElementById('homeBtn').addEventListener('click', () => showPage('home'));
+        document.getElementById('allNewsBtn').addEventListener('click', () => showPage('news'));
+        document.getElementById('adminBtn').addEventListener('click', () => showPage('admin'));
+        document.getElementById('viewAllNews').addEventListener('click', () => showPage('news'));
+        
+        // Post forms
+        document.getElementById('postExamForm').addEventListener('submit', handlePostExam);
+        document.getElementById('postTransferForm').addEventListener('submit', handlePostTransfer);
+
+        // Exam portal
+        document.getElementById('backToExam').addEventListener('click', () => showPage('exam'));
+        document.getElementById('searchExam').addEventListener('input', filterExams);
+        document.getElementById('filterExamDepartment').addEventListener('change', filterExams);
+        document.getElementById('filterExamStatus').addEventListener('change', filterExams);
+
+        // Transfer portal
+        document.getElementById('backToTransfer').addEventListener('click', () => showPage('agency'));
+        document.getElementById('searchTransfer').addEventListener('input', filterTransfers);
+        document.getElementById('filterTransferDepartment').addEventListener('change', filterTransfers);
+        document.getElementById('filterTransferStatus').addEventListener('change', filterTransfers);
+
+        // Agency portal
+        document.getElementById('backToAgencies').addEventListener('click', () => showPage('agency'));
+        document.getElementById('agencyLoginBtn').addEventListener('click', handleAgencyLogin);
+        document.getElementById('agencyLogoutBtn').addEventListener('click', handleAgencyLogout);
+        document.getElementById('agencyNewsForm').addEventListener('submit', handleAgencyNewsSubmit);
+
+        // Firebase Auth event listeners
+        document.getElementById('emailLoginBtn').addEventListener('click', handleEmailLogin);
+        document.getElementById('googleSignInBtn').addEventListener('click', handleGoogleSignIn);
+        document.getElementById('anonymousSignInBtn').addEventListener('click', handleAnonymousSignIn);
+        document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        document.getElementById('signOutBtn').addEventListener('click', handleLogout);
+
+        // Create account
+        document.getElementById('showCreateAccount').addEventListener('click', () => {
+            document.getElementById('createAccountForm').classList.toggle('hidden');
+        });
+        document.getElementById('cancelCreateAccount').addEventListener('click', () => {
+            document.getElementById('createAccountForm').classList.add('hidden');
+        });
+        document.getElementById('createAccountBtn').addEventListener('click', handleCreateAccount);
+
+        // Admin tabs
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                showAdminTab(tabName);
+            });
+        });
+
+        // Add news form
+        document.getElementById('addNewsForm').addEventListener('submit', handleAddNews);
+
+        // Firebase test buttons
+        document.getElementById('testDatabaseBtn').addEventListener('click', testDatabaseConnection);
+        document.getElementById('refreshDataBtn').addEventListener('click', refreshDatabaseData);
+
+        // Search and filter
+        document.getElementById('searchNews').addEventListener('input', filterNews);
+        document.getElementById('filterDepartment').addEventListener('change', filterNews);
+
+        // Modals
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('successModal').classList.add('hidden');
+        });
+        document.getElementById('closeErrorModal').addEventListener('click', () => {
+            document.getElementById('errorModal').classList.add('hidden');
+        });
+
+        // Firebase Auth State Observer
+        if (auth) {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    updateUserInterface(user);
+                    if (currentPage === 'admin') {
+                        showAdminDashboard();
+                    }
+                } else {
+                    currentUser = null;
+                    updateUserInterface(null);
+                    if (currentPage === 'admin') {
+                        showAdminLogin();
+                    }
+                }
+            });
+        }
+
+        // Firebase Authentication Functions
+        async function handleEmailLogin() {
+            if (!auth) {
+                showError('Firebase ไม่พร้อมใช้งาน - ใช้โหมดทดสอบ');
+                handleDemoLogin();
+                return;
+            }
+
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+
+            if (!email || !password) {
+                showError('กรุณากรอกอีเมลและรหัสผ่าน');
+                return;
+            }
+
+            setLoadingState('emailLogin', true);
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                showSuccess('เข้าสู่ระบบสำเร็จ!');
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(getFirebaseErrorMessage(error.code));
+            } finally {
+                setLoadingState('emailLogin', false);
+            }
+        }
+
+        async function handleGoogleSignIn() {
+            if (!auth) {
+                showError('Firebase ไม่พร้อมใช้งาน - ใช้โหมดทดสอบ');
+                handleDemoLogin();
+                return;
+            }
+
+            setLoadingState('googleSignIn', true);
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                showSuccess('เข้าสู่ระบบด้วย Google สำเร็จ!');
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                showError(getFirebaseErrorMessage(error.code));
+            } finally {
+                setLoadingState('googleSignIn', false);
+            }
+        }
+
+        async function handleAnonymousSignIn() {
+            if (!auth) {
+                showError('Firebase ไม่พร้อมใช้งาน - ใช้โหมดทดสอบ');
+                handleDemoLogin();
+                return;
+            }
+
+            setLoadingState('anonymousSignIn', true);
+
+            try {
+                const userCredential = await auth.signInAnonymously();
+                showSuccess('เข้าสู่ระบบแบบไม่ระบุตัวตนสำเร็จ!');
+            } catch (error) {
+                console.error('Anonymous sign-in error:', error);
+                showError(getFirebaseErrorMessage(error.code));
+            } finally {
+                setLoadingState('anonymousSignIn', false);
+            }
+        }
+
+        async function handleCreateAccount() {
+            if (!auth) {
+                showError('Firebase ไม่พร้อมใช้งาน');
+                return;
+            }
+
+            const email = document.getElementById('newAdminEmail').value;
+            const password = document.getElementById('newAdminPassword').value;
+
+            if (!email || !password) {
+                showError('กรุณากรอกอีเมลและรหัสผ่าน');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                showSuccess('สร้างบัญชีสำเร็จ!');
+                document.getElementById('createAccountForm').classList.add('hidden');
+                document.getElementById('newAdminEmail').value = '';
+                document.getElementById('newAdminPassword').value = '';
+            } catch (error) {
+                console.error('Create account error:', error);
+                showError(getFirebaseErrorMessage(error.code));
+            }
+        }
+
+        async function handleLogout() {
+            if (auth && currentUser) {
+                try {
+                    await auth.signOut();
+                    showSuccess('ออกจากระบบสำเร็จ');
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    showError('เกิดข้อผิดพลาดในการออกจากระบบ');
+                }
+            } else {
+                // Demo mode logout
+                currentUser = null;
+                updateUserInterface(null);
+                showAdminLogin();
+                showSuccess('ออกจากระบบสำเร็จ');
+            }
+        }
+
+        // Demo login fallback
+        function handleDemoLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            if ((email === 'admin@test.com' && password === 'password123') || 
+                (email === 'admin' && password === 'password')) {
+                currentUser = { 
+                    email: email, 
+                    displayName: 'Admin (Demo)',
+                    uid: 'demo-uid',
+                    isAnonymous: false
+                };
+                updateUserInterface(currentUser);
+                showAdminDashboard();
+                showSuccess('เข้าสู่ระบบสำเร็จ (โหมดทดสอบ)');
+            } else {
+                showError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+            }
+        }
+
+        function updateUserInterface(user) {
+            const userInfo = document.getElementById('userInfo');
+            const userEmail = document.getElementById('userEmail');
+            const adminDisplayName = document.getElementById('adminDisplayName');
+
+            if (user) {
+                const displayName = user.displayName || user.email || 'ผู้ใช้ไม่ระบุตัวตน';
+                userEmail.textContent = user.email || 'ไม่ระบุอีเมล';
+                adminDisplayName.textContent = displayName;
+                userInfo.classList.remove('hidden');
+                
+                // Update Firebase info tab
+                updateFirebaseInfo(user);
+            } else {
+                userInfo.classList.add('hidden');
+                adminDisplayName.textContent = '';
+            }
+        }
+
+        function updateFirebaseInfo(user) {
+            const currentUserInfo = document.getElementById('currentUserInfo');
+            if (currentUserInfo && user) {
+                currentUserInfo.innerHTML = `
+                    <p><strong>UID:</strong> ${user.uid}</p>
+                    <p><strong>อีเมล:</strong> ${user.email || 'ไม่ระบุ'}</p>
+                    <p><strong>ชื่อแสดง:</strong> ${user.displayName || 'ไม่ระบุ'}</p>
+                    <p><strong>ประเภท:</strong> ${user.isAnonymous ? 'ไม่ระบุตัวตน' : 'ระบุตัวตน'}</p>
+                    <p><strong>เข้าสู่ระบบล่าสุด:</strong> ${user.metadata?.lastSignInTime || 'ไม่ทราบ'}</p>
+                    <p><strong>สร้างบัญชี:</strong> ${user.metadata?.creationTime || 'ไม่ทราบ'}</p>
+                `;
+            }
+            
+            // Update Firebase status
+            updateFirebaseStatus();
+        }
+
+        function updateFirebaseStatus() {
+            // Update connection status
+            const authStatus = document.getElementById('authStatus');
+            const databaseStatus = document.getElementById('databaseStatus');
+            const firebaseNewsCount = document.getElementById('firebaseNewsCount');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const lastUpdate = document.getElementById('lastUpdate');
+            
+            if (auth) {
+                authStatus.textContent = 'เชื่อมต่อแล้ว';
+                authStatus.className = 'text-green-600 font-semibold';
+            } else {
+                authStatus.textContent = 'ไม่เชื่อมต่อ (Demo Mode)';
+                authStatus.className = 'text-yellow-600 font-semibold';
+            }
+            
+            if (database) {
+                databaseStatus.textContent = 'เชื่อมต่อแล้ว';
+                databaseStatus.className = 'text-green-600 font-semibold';
+                connectionStatus.textContent = 'Real-time';
+            } else {
+                databaseStatus.textContent = 'ไม่เชื่อมต่อ (Demo Mode)';
+                databaseStatus.className = 'text-yellow-600 font-semibold';
+                connectionStatus.textContent = 'Local Only';
+            }
+            
+            if (firebaseNewsCount) {
+                firebaseNewsCount.textContent = newsData.length;
+            }
+            
+            if (lastUpdate) {
+                lastUpdate.textContent = new Date().toLocaleString('th-TH');
+            }
+        }
+
+        async function testDatabaseConnection() {
+            const testBtn = document.getElementById('testDatabaseBtn');
+            const originalText = testBtn.textContent;
+            
+            testBtn.textContent = 'กำลังทดสอบ...';
+            testBtn.disabled = true;
+            
+            try {
+                if (!database) {
+                    throw new Error('Database ไม่เชื่อมต่อ - ใช้โหมดทดสอบ');
+                }
+                
+                // Test write
+                const testRef = database.ref('test');
+                await testRef.set({
+                    message: 'Test connection',
+                    timestamp: Date.now()
+                });
+                
+                // Test read
+                const snapshot = await testRef.once('value');
+                const data = snapshot.val();
+                
+                // Clean up test data
+                await testRef.remove();
+                
+                if (data && data.message === 'Test connection') {
+                    showSuccess('การเชื่อมต่อ Firebase Realtime Database สำเร็จ!');
+                } else {
+                    throw new Error('ข้อมูลที่อ่านไม่ถูกต้อง');
+                }
+                
+            } catch (error) {
+                console.error('Database test failed:', error);
+                showError(`การทดสอบ Database ล้มเหลว: ${error.message}`);
+            } finally {
+                testBtn.textContent = originalText;
+                testBtn.disabled = false;
+            }
+        }
+
+        async function refreshDatabaseData() {
+            const refreshBtn = document.getElementById('refreshDataBtn');
+            const originalText = refreshBtn.textContent;
+            
+            refreshBtn.textContent = 'กำลังรีเฟรช...';
+            refreshBtn.disabled = true;
+            
+            try {
+                if (!database) {
+                    throw new Error('Database ไม่เชื่อมต่อ');
+                }
+                
+                // Force refresh data from Firebase
+                const snapshot = await database.ref('news').once('value');
+                const data = snapshot.val();
+                
+                if (data) {
+                    newsData = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    
+                    // Update UI
+                    if (currentPage === 'home') {
+                        loadLatestNews();
+                    } else if (currentPage === 'news') {
+                        loadAllNews();
+                    }
+                    
+                    if (currentUser && currentPage === 'admin') {
+                        loadAdminNews();
+                        updateStats();
+                    }
+                    
+                    updateFirebaseStatus();
+                    showSuccess(`รีเฟรชข้อมูลสำเร็จ! พบข่าว ${newsData.length} รายการ`);
+                } else {
+                    showError('ไม่พบข้อมูลใน Database');
+                }
+                
+            } catch (error) {
+                console.error('Refresh failed:', error);
+                showError(`การรีเฟรชข้อมูลล้มเหลว: ${error.message}`);
+            } finally {
+                refreshBtn.textContent = originalText;
+                refreshBtn.disabled = false;
+            }
+        }
+
+        function setLoadingState(buttonType, loading) {
+            const button = document.getElementById(`${buttonType}Btn`);
+            const text = document.getElementById(`${buttonType}Text`);
+            const spinner = document.getElementById(`${buttonType}Spinner`);
+
+            if (loading) {
+                button.disabled = true;
+                button.classList.add('opacity-75', 'cursor-not-allowed');
+                spinner.classList.remove('hidden');
+                text.textContent = 'กำลังเข้าสู่ระบบ...';
+            } else {
+                button.disabled = false;
+                button.classList.remove('opacity-75', 'cursor-not-allowed');
+                spinner.classList.add('hidden');
+                
+                // Reset text based on button type
+                switch(buttonType) {
+                    case 'emailLogin':
+                        text.textContent = 'เข้าสู่ระบบด้วยอีเมล';
+                        break;
+                    case 'googleSignIn':
+                        text.textContent = 'เข้าสู่ระบบด้วย Google';
+                        break;
+                    case 'anonymousSignIn':
+                        text.textContent = 'เข้าสู่ระบบแบบไม่ระบุตัวตน';
+                        break;
+                }
+            }
+        }
+
+        function getFirebaseErrorMessage(errorCode) {
+            const errorMessages = {
+                'auth/user-not-found': 'ไม่พบผู้ใช้นี้ในระบบ',
+                'auth/wrong-password': 'รหัสผ่านไม่ถูกต้อง',
+                'auth/email-already-in-use': 'อีเมลนี้ถูกใช้งานแล้ว',
+                'auth/weak-password': 'รหัสผ่านไม่ปลอดภัย',
+                'auth/invalid-email': 'รูปแบบอีเมลไม่ถูกต้อง',
+                'auth/popup-closed-by-user': 'ผู้ใช้ปิดหน้าต่างการเข้าสู่ระบบ',
+                'auth/cancelled-popup-request': 'การเข้าสู่ระบบถูกยกเลิก',
+                'auth/popup-blocked': 'เบราว์เซอร์บล็อกหน้าต่างป๊อปอัป',
+                'auth/operation-not-allowed': 'วิธีการเข้าสู่ระบบนี้ไม่ได้รับอนุญาต',
+                'auth/too-many-requests': 'มีการพยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่'
+            };
+            
+            return errorMessages[errorCode] || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+        }
+
+        function showPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:text-blue-600');
+            });
+
+            currentPage = page;
+
+            switch(page) {
+                case 'home':
+                    document.getElementById('homePage').classList.remove('hidden');
+                    document.getElementById('homeBtn').classList.add('bg-blue-600', 'text-white');
+                    loadLatestNews();
+                    break;
+                case 'news':
+                    document.getElementById('newsPage').classList.remove('hidden');
+                    document.getElementById('allNewsBtn').classList.add('bg-blue-600', 'text-white');
+                    loadAllNews();
+                    break;
+                case 'postExam':
+                    document.getElementById('postExamPage').classList.remove('hidden');
+                    break;
+                case 'postTransfer':
+                    document.getElementById('postTransferPage').classList.remove('hidden');
+                    break;
+                case 'exam':
+                    document.getElementById('examPage').classList.remove('hidden');
+                    document.getElementById('examBtn').classList.add('bg-blue-600', 'text-white');
+                    break;
+                case 'examCategory':
+                    document.getElementById('examCategoryPage').classList.remove('hidden');
+                    break;
+                case 'agency':
+                    document.getElementById('agencyPage').classList.remove('hidden');
+                    document.getElementById('agencyBtn').classList.add('bg-blue-600', 'text-white');
+                    break;
+                case 'transferCategory':
+                    document.getElementById('transferCategoryPage').classList.remove('hidden');
+                    break;
+                case 'agencyPortal':
+                    document.getElementById('agencyPortalPage').classList.remove('hidden');
+                    break;
+                case 'admin':
+                    document.getElementById('adminPage').classList.remove('hidden');
+                    document.getElementById('adminBtn').classList.add('bg-blue-600', 'text-white');
+                    if (currentUser) {
+                        showAdminDashboard();
+                    } else {
+                        showAdminLogin();
+                    }
+                    break;
+            }
+        }
+
+        function loadLatestNews() {
+            const container = document.getElementById('latestNews');
+            const latest = newsData.filter(news => news.status === 'active').slice(0, 3);
+            
+            container.innerHTML = latest.map(news => `
+                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <h4 class="font-semibold text-gray-800">${news.title}</h4>
+                    <p class="text-sm text-gray-600">${news.department} • ${formatDate(news.date)}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('newsCount').textContent = newsData.filter(n => n.status === 'active').length;
+        }
+
+        function loadAllNews() {
+            const container = document.getElementById('newsGrid');
+            const activeNews = newsData.filter(news => news.status === 'active');
+            
+            container.innerHTML = activeNews.map(news => {
+                const applicationStatus = getApplicationStatus(news.startDate, news.endDate);
+                const statusColor = applicationStatus.status === 'open' ? 'green' : 
+                                  applicationStatus.status === 'closing' ? 'yellow' : 'red';
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-l-4 border-${statusColor}-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">${news.department}</span>
+                            <span class="text-sm text-gray-500">${formatDate(news.date)}</span>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">${news.title}</h3>
+                        <p class="text-gray-600 mb-4">${news.content}</p>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">จำนวนอัตรา:</span>
+                                    <span class="font-semibold text-blue-600">${news.positions} อัตรา</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">สถานะ:</span>
+                                    <span class="font-semibold text-${statusColor}-600">${applicationStatus.text}</span>
+                                </div>
+                                <div class="col-span-2">
+                                    <span class="text-gray-600">ระยะเวลาสมัคร:</span>
+                                    <span class="font-semibold">${formatDate(news.startDate)} - ${formatDate(news.endDate)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button 
+                                onclick="applyForTransfer(${news.id})" 
+                                class="flex-1 ${applicationStatus.status === 'open' || applicationStatus.status === 'closing' ? 
+                                    'bg-green-600 hover:bg-green-700 text-white' : 
+                                    'bg-gray-300 text-gray-500 cursor-not-allowed'} 
+                                py-2 px-4 rounded-lg transition-colors font-medium"
+                                ${applicationStatus.status === 'closed' ? 'disabled' : ''}
+                            >
+                                ${applicationStatus.status === 'closed' ? 'หมดเขตสมัคร' : 'สมัครโอนย้าย'}
+                            </button>
+                            <button 
+                                onclick="downloadFile('${news.fileUrl}', '${news.fileName}')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                            >
+                                📄 ดาวน์โหลด
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterNews() {
+            const searchTerm = document.getElementById('searchNews').value.toLowerCase();
+            const selectedDept = document.getElementById('filterDepartment').value;
+            
+            let filtered = newsData.filter(news => news.status === 'active');
+            
+            if (searchTerm) {
+                filtered = filtered.filter(news => 
+                    news.title.toLowerCase().includes(searchTerm) ||
+                    news.content.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (selectedDept) {
+                filtered = filtered.filter(news => news.department === selectedDept);
+            }
+            
+            const container = document.getElementById('newsGrid');
+            container.innerHTML = filtered.map(news => `
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">${news.department}</span>
+                        <span class="text-sm text-gray-500">${formatDate(news.date)}</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">${news.title}</h3>
+                    <p class="text-gray-600 mb-4">${news.content}</p>
+                    <button class="text-blue-600 hover:text-blue-800 font-medium">อ่านเพิ่มเติม →</button>
+                </div>
+            `).join('');
+        }
+
+        function showAdminLogin() {
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+        }
+
+        function showAdminDashboard() {
+            document.getElementById('adminLogin').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            loadAdminNews();
+            updateStats();
+            
+            // Update Firebase info if user is logged in
+            if (currentUser) {
+                updateFirebaseInfo(currentUser);
+            }
+        }
+
+        function showAdminTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('border-blue-500', 'text-blue-600');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-500');
+            
+            // Show tab content
+            document.querySelectorAll('.admin-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            if (tabName === 'manage-news') {
+                loadAdminNews();
+            }
+        }
+
+        function loadAdminNews() {
+            const tbody = document.getElementById('newsTableBody');
+            tbody.innerHTML = newsData.map(news => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${news.title}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${news.department}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatDate(news.date)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editNews(${news.id})" class="text-blue-600 hover:text-blue-900 mr-3">แก้ไข</button>
+                        <button onclick="deleteNews(${news.id})" class="text-red-600 hover:text-red-900">ลบ</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function handleAddNews(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const editId = form.dataset.editId;
+            
+            const newsData = {
+                title: document.getElementById('newsTitle').value,
+                department: document.getElementById('newsDepartment').value,
+                content: document.getElementById('newsContent').value,
+                date: document.getElementById('newsDate').value,
+                status: document.getElementById('newsStatus').value,
+                startDate: document.getElementById('newsDate').value,
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                positions: Math.floor(Math.random() * 50) + 10,
+                fileUrl: null,
+                fileName: null
+            };
+            
+            try {
+                if (editId) {
+                    // Update existing news
+                    await updateNewsInFirebase(editId, newsData);
+                    showSuccess('อัปเดตข่าวสำเร็จ และอัปเดตใน Firebase แล้ว');
+                } else {
+                    // Add new news (admin bypass approval)
+                    await addNewsToFirebase(newsData, false);
+                    showSuccess('เพิ่มข่าวใหม่สำเร็จ และเผยแพร่ทันที');
+                }
+                
+                // Reset form
+                form.reset();
+                delete form.dataset.editId;
+                
+                // Reset button text
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.textContent = 'บันทึกข่าว';
+                
+            } catch (error) {
+                console.error('Error saving news:', error);
+                showError('เกิดข้อผิดพลาดในการบันทึกข่าว');
+            }
+        }
+
+        function editNews(id) {
+            const news = newsData.find(n => n.id === id);
+            if (news) {
+                // Switch to add news tab and populate form
+                showAdminTab('add-news');
+                document.getElementById('newsTitle').value = news.title;
+                document.getElementById('newsDepartment').value = news.department;
+                document.getElementById('newsContent').value = news.content;
+                document.getElementById('newsDate').value = news.date;
+                document.getElementById('newsStatus').value = news.status;
+                
+                // Store the ID for updating instead of creating new
+                document.getElementById('addNewsForm').dataset.editId = id;
+                
+                // Change button text
+                const submitBtn = document.querySelector('#addNewsForm button[type="submit"]');
+                submitBtn.textContent = 'อัปเดตข่าว';
+            }
+        }
+
+        async function deleteNews(id) {
+            if (confirm('คุณต้องการลบข่าวนี้หรือไม่?')) {
+                try {
+                    await deleteNewsFromFirebase(id);
+                    showSuccess('ลบข่าวสำเร็จ และอัปเดต Firebase แล้ว');
+                } catch (error) {
+                    console.error('Error deleting news:', error);
+                    showError('เกิดข้อผิดพลาดในการลบข่าว');
+                }
+            }
+        }
+
+        function updateStats() {
+            const total = newsData.length;
+            const published = newsData.filter(n => n.status === 'active').length;
+            const draft = newsData.filter(n => n.status === 'draft').length;
+            
+            document.getElementById('totalNewsStats').textContent = total;
+            document.getElementById('publishedNewsStats').textContent = published;
+            document.getElementById('draftNewsStats').textContent = draft;
+            document.getElementById('newsCount').textContent = published;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('flex');
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').classList.remove('hidden');
+            document.getElementById('errorModal').classList.add('flex');
+        }
+
+        // Agency functions
+        function openAgencyPortal(agencyType) {
+            currentAgency = agencyType;
+            const agencyData = getAgencyData(agencyType);
+            
+            document.getElementById('agencyName').textContent = agencyData.name;
+            document.getElementById('agencyLogo').innerHTML = agencyData.logo;
+            document.getElementById('agencyLogo').className = `w-16 h-16 ${agencyData.bgColor} rounded-full flex items-center justify-center mr-4`;
+            
+            showPage('agencyPortal');
+            showAgencyLogin();
+        }
+
+        function getAgencyData(type) {
+            const agencies = {
+                education: {
+                    name: 'กระทรวงศึกษาธิการ',
+                    bgColor: 'bg-blue-100',
+                    logo: '<svg class="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>'
+                },
+                interior: {
+                    name: 'กระทรวงมหาดไทย',
+                    bgColor: 'bg-green-100',
+                    logo: '<svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
+                },
+                health: {
+                    name: 'กระทรวงสาธารณสุข',
+                    bgColor: 'bg-red-100',
+                    logo: '<svg class="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/></svg>'
+                }
+            };
+            return agencies[type];
+        }
+
+        function handleAgencyLogin() {
+            const username = document.getElementById('agencyUsername').value;
+            const password = document.getElementById('agencyPassword').value;
+            
+            if (username === 'agency' && password === 'password') {
+                showAgencyDashboard();
+                showSuccess('เข้าสู่ระบบหน่วยงานสำเร็จ');
+            } else {
+                showError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+            }
+        }
+
+        function handleAgencyLogout() {
+            showAgencyLogin();
+            showSuccess('ออกจากระบบหน่วยงานสำเร็จ');
+        }
+
+        function showAgencyLogin() {
+            document.getElementById('agencyLogin').classList.remove('hidden');
+            document.getElementById('agencyDashboard').classList.add('hidden');
+        }
+
+        function showAgencyDashboard() {
+            document.getElementById('agencyLogin').classList.add('hidden');
+            document.getElementById('agencyDashboard').classList.remove('hidden');
+            loadAgencyNews();
+        }
+
+        async function handleAgencyNewsSubmit(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('agencyFile');
+            const fileName = fileInput.files[0] ? fileInput.files[0].name : null;
+            
+            const newNews = {
+                title: document.getElementById('agencyNewsTitle').value,
+                department: getAgencyData(currentAgency).name,
+                content: document.getElementById('agencyNewsContent').value,
+                date: new Date().toISOString().split('T')[0],
+                startDate: document.getElementById('agencyStartDate').value,
+                endDate: document.getElementById('agencyEndDate').value,
+                positions: parseInt(document.getElementById('agencyPositions').value),
+                status: 'active',
+                fileUrl: fileName ? `agency-${Date.now()}.pdf` : null,
+                fileName: fileName || null
+            };
+            
+            try {
+                await addNewsToFirebase(newNews, true); // Require approval
+                
+                document.getElementById('agencyNewsForm').reset();
+                loadAgencyNews();
+                showSuccess('ส่งประกาศเรียบร้อยแล้ว รอแอดมินอนุมัติ');
+            } catch (error) {
+                console.error('Error adding agency news:', error);
+                showError('เกิดข้อผิดพลาดในการส่งประกาศ');
+            }
+        }
+
+        function loadAgencyNews() {
+            const container = document.getElementById('agencyNewsList');
+            const agencyName = getAgencyData(currentAgency).name;
+            const agencyNews = newsData.filter(news => news.department === agencyName);
+            
+            container.innerHTML = agencyNews.map(news => `
+                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h5 class="font-semibold text-gray-800">${news.title}</h5>
+                        <span class="text-sm text-gray-500">${formatDate(news.date)}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${news.content}</p>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-blue-600">${news.positions} อัตรา</span>
+                        <span class="text-gray-500">${formatDate(news.startDate)} - ${formatDate(news.endDate)}</span>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-center py-8">ยังไม่มีประกาศ</p>';
+        }
+
+        function getApplicationStatus(startDate, endDate) {
+            const today = new Date();
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (today < start) {
+                return { status: 'pending', text: 'ยังไม่เปิดรับสมัคร' };
+            } else if (today > end) {
+                return { status: 'closed', text: 'หมดเขตสมัคร' };
+            } else {
+                const daysLeft = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+                if (daysLeft <= 3) {
+                    return { status: 'closing', text: `เหลือ ${daysLeft} วัน` };
+                }
+                return { status: 'open', text: 'เปิดรับสมัคร' };
+            }
+        }
+
+        function applyForTransfer(newsId) {
+            const news = newsData.find(n => n.id === newsId);
+            if (news) {
+                showSuccess(`ส่งใบสมัครโอนย้าย "${news.title}" เรียบร้อยแล้ว`);
+            }
+        }
+
+        function downloadFile(fileUrl, fileName) {
+            // Simulate file download
+            const link = document.createElement('a');
+            link.href = '#';
+            link.download = fileName;
+            
+            // Create a blob with sample PDF content
+            const pdfContent = `%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 44
+>>
+stream
+BT
+/F1 12 Tf
+100 700 Td
+(ประกาศโอนย้ายข้าราชการ) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000206 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+300
+%%EOF`;
+            
+            const blob = new Blob([pdfContent], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showSuccess(`ดาวน์โหลดไฟล์ "${fileName}" เรียบร้อยแล้ว`);
+        }
+
+        // Post functions
+        function showPostExam() {
+            showPage('postExam');
+        }
+
+        function showPostTransfer() {
+            showPage('postTransfer');
+        }
+
+        function handlePostExam(e) {
+            e.preventDefault();
+            
+            const newExam = {
+                id: Date.now(),
+                title: document.getElementById('examPosition').value,
+                department: document.getElementById('examDepartment').value,
+                level: document.getElementById('examEducation').value,
+                positions: parseInt(document.getElementById('examPositionsCount').value),
+                applicants: 0,
+                examDate: document.getElementById('examDate').value,
+                applicationStart: document.getElementById('examApplicationStart').value,
+                applicationEnd: document.getElementById('examApplicationEnd').value,
+                status: 'open',
+                salary: document.getElementById('examSalary').value,
+                location: document.getElementById('examLocation').value,
+                description: document.getElementById('examDescription').value
+            };
+            
+            const examType = document.getElementById('examType').value;
+            examData[examType].unshift(newExam);
+            
+            document.getElementById('postExamForm').reset();
+            showSuccess('เผยแพร่ประกาศสอบราชการสำเร็จ');
+        }
+
+        async function handlePostTransfer(e) {
+            e.preventDefault();
+            
+            const newTransfer = {
+                id: Date.now(),
+                title: document.getElementById('transferTitle').value,
+                department: document.getElementById('transferDepartment').value,
+                positions: parseInt(document.getElementById('transferPositionsCount').value),
+                location: document.getElementById('transferLocation').value,
+                applicationStart: document.getElementById('transferApplicationStart').value,
+                applicationEnd: document.getElementById('transferApplicationEnd').value,
+                salary: document.getElementById('transferSalary').value,
+                requirements: document.getElementById('transferRequirements').value,
+                description: document.getElementById('transferDescription').value,
+                status: 'open'
+            };
+            
+            const transferType = document.getElementById('transferType').value;
+            transferData[transferType].unshift(newTransfer);
+            
+            // Also add to news data in Firebase
+            const newsItem = {
+                title: newTransfer.title,
+                department: newTransfer.department,
+                content: newTransfer.description,
+                date: new Date().toISOString().split('T')[0],
+                startDate: newTransfer.applicationStart,
+                endDate: newTransfer.applicationEnd,
+                positions: newTransfer.positions,
+                status: 'active',
+                fileUrl: null,
+                fileName: null
+            };
+            
+            try {
+                await addNewsToFirebase(newsItem);
+                
+                document.getElementById('postTransferForm').reset();
+                showSuccess('เผยแพร่ประกาศรับโอนย้ายสำเร็จ และอัปเดตใน Firebase แล้ว');
+            } catch (error) {
+                console.error('Error posting transfer:', error);
+                showError('เกิดข้อผิดพลาดในการเผยแพร่ประกาศ');
+            }
+        }
+
+        // Set default dates for new news
+        const today = new Date().toISOString().split('T')[0];
+        const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        if (document.getElementById('newsDate')) {
+            document.getElementById('newsDate').value = today;
+        }
+        if (document.getElementById('agencyStartDate')) {
+            document.getElementById('agencyStartDate').value = nextWeek;
+            document.getElementById('agencyEndDate').value = nextMonth;
+        }
+        
+        // Set default dates for post forms
+        if (document.getElementById('examApplicationStart')) {
+            document.getElementById('examApplicationStart').value = nextWeek;
+            document.getElementById('examApplicationEnd').value = nextMonth;
+            document.getElementById('examDate').value = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        }
+        
+        if (document.getElementById('transferApplicationStart')) {
+            document.getElementById('transferApplicationStart').value = nextWeek;
+            document.getElementById('transferApplicationEnd').value = nextMonth;
+        }
+
+        // Exam functions
+        function showExamCategory(category) {
+            currentExamCategory = category;
+            
+            if (category === 'csc') {
+                document.getElementById('examCategoryTitle').textContent = 'การสอบผ่าน กพ.';
+                document.getElementById('examCategoryDesc').textContent = 'การสอบแข่งขันเข้ารับราชการผ่านคณะกรรมการข้าราชการพลเรือน';
+            } else {
+                document.getElementById('examCategoryTitle').textContent = 'การสอบไม่ผ่าน กพ.';
+                document.getElementById('examCategoryDesc').textContent = 'การสอบแข่งขันเข้ารับราชการโดยหน่วยงานเจ้าสังกัดเอง';
+            }
+            
+            showPage('examCategory');
+            loadExamList();
+        }
+
+        function loadExamList() {
+            const container = document.getElementById('examList');
+            const exams = examData[currentExamCategory] || [];
+            
+            container.innerHTML = exams.map(exam => {
+                const statusInfo = getExamStatusInfo(exam.status);
+                const applicationStatus = getApplicationStatus(exam.applicationStart, exam.applicationEnd);
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-l-4 ${statusInfo.borderColor}">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4 mb-4 lg:mb-0">
+                                <div class="w-12 h-12 ${statusInfo.bgColor} rounded-full flex items-center justify-center">
+                                    <span class="text-xl">${statusInfo.icon}</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${exam.title}</h3>
+                                    <p class="text-gray-600">${exam.department}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="px-3 py-1 ${statusInfo.statusClass} text-sm font-medium rounded-full">
+                                    ${statusInfo.text}
+                                </span>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
+                                    ${exam.level}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-4">${exam.description}</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-sm text-blue-600 mb-1">จำนวนอัตรา</div>
+                                <div class="font-bold text-blue-800">${exam.positions} อัตรา</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-3">
+                                <div class="text-sm text-green-600 mb-1">ผู้สมัคร</div>
+                                <div class="font-bold text-green-800">${exam.applicants} คน</div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-3">
+                                <div class="text-sm text-purple-600 mb-1">เงินเดือน</div>
+                                <div class="font-bold text-purple-800">${exam.salary}</div>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-3">
+                                <div class="text-sm text-orange-600 mb-1">สถานที่ปฏิบัติงาน</div>
+                                <div class="font-bold text-orange-800 text-xs">${exam.location}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">รับสมัคร:</span>
+                                    <span class="font-semibold">${formatDate(exam.applicationStart)} - ${formatDate(exam.applicationEnd)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">วันสอบ:</span>
+                                    <span class="font-semibold">${formatDate(exam.examDate)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">อัตราแข่งขัน:</span>
+                                    <span class="font-semibold text-red-600">1:${Math.round(exam.applicants / exam.positions)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button 
+                                onclick="applyForExam(${exam.id})" 
+                                class="flex-1 ${exam.status === 'open' ? 
+                                    'bg-green-600 hover:bg-green-700 text-white' : 
+                                    'bg-gray-300 text-gray-500 cursor-not-allowed'} 
+                                py-2 px-4 rounded-lg transition-colors font-medium"
+                                ${exam.status !== 'open' ? 'disabled' : ''}
+                            >
+                                ${exam.status === 'open' ? '📝 สมัครสอบ' : 
+                                  exam.status === 'closed' ? '❌ ปิดรับสมัคร' :
+                                  exam.status === 'testing' ? '⏳ กำลังสอบ' : '📋 ดูผลสอบ'}
+                            </button>
+                            <button 
+                                onclick="downloadExamInfo(${exam.id})" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                            >
+                                📄 ดาวน์โหลดประกาศ
+                            </button>
+                            <button 
+                                onclick="viewExamDetails(${exam.id})" 
+                                class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                            >
+                                👁️ รายละเอียด
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-center py-12 text-gray-500">ไม่พบข้อมูลการสอบ</div>';
+        }
+
+        function getExamStatusInfo(status) {
+            const statusMap = {
+                open: {
+                    text: 'เปิดรับสมัคร',
+                    statusClass: 'bg-green-100 text-green-800',
+                    borderColor: 'border-green-500',
+                    bgColor: 'bg-green-100',
+                    icon: '✅'
+                },
+                closed: {
+                    text: 'ปิดรับสมัคร',
+                    statusClass: 'bg-red-100 text-red-800',
+                    borderColor: 'border-red-500',
+                    bgColor: 'bg-red-100',
+                    icon: '❌'
+                },
+                testing: {
+                    text: 'กำลังสอบ',
+                    statusClass: 'bg-yellow-100 text-yellow-800',
+                    borderColor: 'border-yellow-500',
+                    bgColor: 'bg-yellow-100',
+                    icon: '⏳'
+                },
+                announced: {
+                    text: 'ประกาศผลแล้ว',
+                    statusClass: 'bg-blue-100 text-blue-800',
+                    borderColor: 'border-blue-500',
+                    bgColor: 'bg-blue-100',
+                    icon: '📋'
+                }
+            };
+            return statusMap[status] || statusMap.open;
+        }
+
+        function filterExams() {
+            const searchTerm = document.getElementById('searchExam').value.toLowerCase();
+            const selectedDept = document.getElementById('filterExamDepartment').value;
+            const selectedStatus = document.getElementById('filterExamStatus').value;
+            
+            let filtered = examData[currentExamCategory] || [];
+            
+            if (searchTerm) {
+                filtered = filtered.filter(exam => 
+                    exam.title.toLowerCase().includes(searchTerm) ||
+                    exam.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (selectedDept) {
+                filtered = filtered.filter(exam => exam.department === selectedDept);
+            }
+            
+            if (selectedStatus) {
+                filtered = filtered.filter(exam => exam.status === selectedStatus);
+            }
+            
+            // Update display with filtered results
+            const container = document.getElementById('examList');
+            container.innerHTML = filtered.map(exam => {
+                const statusInfo = getExamStatusInfo(exam.status);
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-l-4 ${statusInfo.borderColor}">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4 mb-4 lg:mb-0">
+                                <div class="w-12 h-12 ${statusInfo.bgColor} rounded-full flex items-center justify-center">
+                                    <span class="text-xl">${statusInfo.icon}</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${exam.title}</h3>
+                                    <p class="text-gray-600">${exam.department}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 ${statusInfo.statusClass} text-sm font-medium rounded-full">
+                                ${statusInfo.text}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 mb-4">${exam.description}</p>
+                        <div class="flex space-x-3">
+                            <button onclick="applyForExam(${exam.id})" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">สมัครสอบ</button>
+                            <button onclick="downloadExamInfo(${exam.id})" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">ดาวน์โหลด</button>
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-center py-12 text-gray-500">ไม่พบข้อมูลการสอบที่ตรงกับเงื่อนไข</div>';
+        }
+
+        function applyForExam(examId) {
+            const allExams = [...examData.csc, ...examData['non-csc']];
+            const exam = allExams.find(e => e.id === examId);
+            if (exam) {
+                showSuccess(`ส่งใบสมัครสอบ "${exam.title}" เรียบร้อยแล้ว`);
+            }
+        }
+
+        function downloadExamInfo(examId) {
+            const allExams = [...examData.csc, ...examData['non-csc']];
+            const exam = allExams.find(e => e.id === examId);
+            if (exam) {
+                // Simulate file download
+                const fileName = `ประกาศสอบ_${exam.title.replace(/\s+/g, '_')}.pdf`;
+                downloadFile(`exam-${examId}.pdf`, fileName);
+            }
+        }
+
+        function viewExamDetails(examId) {
+            const allExams = [...examData.csc, ...examData['non-csc']];
+            const exam = allExams.find(e => e.id === examId);
+            if (exam) {
+                showSuccess(`แสดงรายละเอียดการสอบ "${exam.title}"`);
+            }
+        }
+
+        // Transfer functions
+        function openTransferCategory(category) {
+            currentTransferCategory = category;
+            
+            const categoryInfo = {
+                civil: {
+                    title: 'ข้าราชการพลเรือน',
+                    desc: 'ประกาศรับโอนย้ายข้าราชการพลเรือนทุกกระทรวง'
+                },
+                local: {
+                    title: 'ข้าราชการท้องถิ่น',
+                    desc: 'ประกาศรับโอนย้ายข้าราชการท้องถิ่นทุกระดับ'
+                },
+                independent: {
+                    title: 'องค์กรอิสระ',
+                    desc: 'ประกาศรับโอนย้ายองค์กรอิสระและหน่วยงานรัฐ'
+                },
+                others: {
+                    title: 'อื่นๆ',
+                    desc: 'ประกาศรับโอนย้ายหน่วยงานอื่นๆ และรัฐวิสาหกิจ'
+                }
+            };
+            
+            document.getElementById('transferCategoryTitle').textContent = categoryInfo[category].title;
+            document.getElementById('transferCategoryDesc').textContent = categoryInfo[category].desc;
+            
+            showPage('transferCategory');
+            loadTransferList();
+        }
+
+        function loadTransferList() {
+            const container = document.getElementById('transferList');
+            const transfers = transferData[currentTransferCategory] || [];
+            
+            container.innerHTML = transfers.map(transfer => {
+                const applicationStatus = getApplicationStatus(transfer.applicationStart, transfer.applicationEnd);
+                const statusInfo = getTransferStatusInfo(applicationStatus.status);
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-l-4 ${statusInfo.borderColor}">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4 mb-4 lg:mb-0">
+                                <div class="w-12 h-12 ${statusInfo.bgColor} rounded-full flex items-center justify-center">
+                                    <span class="text-xl">${statusInfo.icon}</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${transfer.title}</h3>
+                                    <p class="text-gray-600">${transfer.department}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 ${statusInfo.statusClass} text-sm font-medium rounded-full">
+                                ${applicationStatus.text}
+                            </span>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-4">${transfer.description}</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-sm text-blue-600 mb-1">จำนวนอัตรา</div>
+                                <div class="font-bold text-blue-800">${transfer.positions} อัตรา</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-3">
+                                <div class="text-sm text-green-600 mb-1">เงินเดือน</div>
+                                <div class="font-bold text-green-800">${transfer.salary}</div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-3">
+                                <div class="text-sm text-purple-600 mb-1">สถานที่ปฏิบัติงาน</div>
+                                <div class="font-bold text-purple-800 text-xs">${transfer.location}</div>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-3">
+                                <div class="text-sm text-orange-600 mb-1">คุณสมบัติ</div>
+                                <div class="font-bold text-orange-800 text-xs">${transfer.requirements}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">รับสมัคร:</span>
+                                    <span class="font-semibold">${formatDate(transfer.applicationStart)} - ${formatDate(transfer.applicationEnd)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">สถานะ:</span>
+                                    <span class="font-semibold ${statusInfo.textColor}">${applicationStatus.text}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button 
+                                onclick="applyForTransfer(${transfer.id})" 
+                                class="flex-1 ${applicationStatus.status === 'open' || applicationStatus.status === 'closing' ? 
+                                    'bg-green-600 hover:bg-green-700 text-white' : 
+                                    'bg-gray-300 text-gray-500 cursor-not-allowed'} 
+                                py-2 px-4 rounded-lg transition-colors font-medium"
+                                ${applicationStatus.status === 'closed' ? 'disabled' : ''}
+                            >
+                                ${applicationStatus.status === 'closed' ? '❌ หมดเขตสมัคร' : '📝 สมัครโอนย้าย'}
+                            </button>
+                            <button 
+                                onclick="downloadTransferInfo(${transfer.id})" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                            >
+                                📄 ดาวน์โหลดประกาศ
+                            </button>
+                            <button 
+                                onclick="viewTransferDetails(${transfer.id})" 
+                                class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors font-medium"
+                            >
+                                👁️ รายละเอียด
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-center py-12 text-gray-500">ไม่พบประกาศรับโอนย้าย</div>';
+        }
+
+        function getTransferStatusInfo(status) {
+            const statusMap = {
+                open: {
+                    statusClass: 'bg-green-100 text-green-800',
+                    borderColor: 'border-green-500',
+                    bgColor: 'bg-green-100',
+                    textColor: 'text-green-600',
+                    icon: '✅'
+                },
+                closing: {
+                    statusClass: 'bg-yellow-100 text-yellow-800',
+                    borderColor: 'border-yellow-500',
+                    bgColor: 'bg-yellow-100',
+                    textColor: 'text-yellow-600',
+                    icon: '⏰'
+                },
+                closed: {
+                    statusClass: 'bg-red-100 text-red-800',
+                    borderColor: 'border-red-500',
+                    bgColor: 'bg-red-100',
+                    textColor: 'text-red-600',
+                    icon: '❌'
+                }
+            };
+            return statusMap[status] || statusMap.open;
+        }
+
+        function filterTransfers() {
+            const searchTerm = document.getElementById('searchTransfer').value.toLowerCase();
+            const selectedDept = document.getElementById('filterTransferDepartment').value;
+            const selectedStatus = document.getElementById('filterTransferStatus').value;
+            
+            let filtered = transferData[currentTransferCategory] || [];
+            
+            if (searchTerm) {
+                filtered = filtered.filter(transfer => 
+                    transfer.title.toLowerCase().includes(searchTerm) ||
+                    transfer.description.toLowerCase().includes(searchTerm) ||
+                    transfer.department.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (selectedDept) {
+                filtered = filtered.filter(transfer => transfer.department === selectedDept);
+            }
+            
+            if (selectedStatus) {
+                filtered = filtered.filter(transfer => {
+                    const applicationStatus = getApplicationStatus(transfer.applicationStart, transfer.applicationEnd);
+                    return applicationStatus.status === selectedStatus;
+                });
+            }
+            
+            // Update display with filtered results
+            const container = document.getElementById('transferList');
+            container.innerHTML = filtered.map(transfer => {
+                const applicationStatus = getApplicationStatus(transfer.applicationStart, transfer.applicationEnd);
+                const statusInfo = getTransferStatusInfo(applicationStatus.status);
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border-l-4 ${statusInfo.borderColor}">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4 mb-4 lg:mb-0">
+                                <div class="w-12 h-12 ${statusInfo.bgColor} rounded-full flex items-center justify-center">
+                                    <span class="text-xl">${statusInfo.icon}</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${transfer.title}</h3>
+                                    <p class="text-gray-600">${transfer.department}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 ${statusInfo.statusClass} text-sm font-medium rounded-full">
+                                ${applicationStatus.text}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 mb-4">${transfer.description}</p>
+                        <div class="flex space-x-3">
+                            <button onclick="applyForTransfer(${transfer.id})" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">สมัครโอนย้าย</button>
+                            <button onclick="downloadTransferInfo(${transfer.id})" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">ดาวน์โหลด</button>
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-center py-12 text-gray-500">ไม่พบประกาศที่ตรงกับเงื่อนไข</div>';
+        }
+
+        function downloadTransferInfo(transferId) {
+            const allTransfers = [...transferData.civil, ...transferData.local, ...transferData.independent, ...transferData.others];
+            const transfer = allTransfers.find(t => t.id === transferId);
+            if (transfer) {
+                const fileName = `ประกาศโอนย้าย_${transfer.title.replace(/\s+/g, '_')}.pdf`;
+                downloadFile(`transfer-${transferId}.pdf`, fileName);
+            }
+        }
+
+        function viewTransferDetails(transferId) {
+            const allTransfers = [...transferData.civil, ...transferData.local, ...transferData.independent, ...transferData.others];
+            const transfer = allTransfers.find(t => t.id === transferId);
+            if (transfer) {
+                showSuccess(`แสดงรายละเอียดประกาศ "${transfer.title}"`);
+            }
+        }
+
+        // Initialize app
+        showPage('home');
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9723fdde46bb45b9',t:'MTc1NTcxNDkzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
