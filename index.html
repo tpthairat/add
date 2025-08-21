@@ -2411,56 +2411,58 @@ ${announcement.contactPerson}
         });
     </script>
 <script>
-  // Global variables
+  // ===============================
+  // Global State
+  // ===============================
   let allAnnouncements = [];
-  let currentPage = 'home';
   let currentAnnouncementPage = 1;
-  let currentAnnouncementId = null;
   let editingAnnouncementId = null;
-  let currentUser = null;
   let isAdminLoggedIn = false;
-  const announcementsPerPage = 6;
 
-  // Initialize application
-  document.addEventListener('DOMContentLoaded', function () {
-    initializeApp();
+  const ANNOUNCEMENTS_PER_PAGE = 6;
+
+  // ===============================
+  // Bootstrapping
+  // ===============================
+  document.addEventListener('DOMContentLoaded', () => {
     initializeAuth();
-    showPage('home');
-    setTodayDate();
+    initializeApp();          // โหลดข้อมูลครั้งแรก
+    // ถ้ามีฟังก์ชัน setTodayDate / showPage ในโปรเจกต์เดิม จะเรียกใช้ได้ตามปกติ
+    if (typeof setTodayDate === 'function') setTodayDate();
   });
 
   function initializeApp() {
-    console.log('🚀 เริ่มต้นแพลตฟอร์มประกาศรับโอนย้าย...');
-    loadDataFromFirebase(); // ✅ ดึงข้อมูลจาก Firebase
+    console.log('🚀 Initializing announcement platform...');
+    loadDataFromFirebase();
   }
 
   function initializeAuth() {
-    const { auth, onAuthStateChanged } = window.firebase;
-
+    const { auth, onAuthStateChanged } = window.firebase || {};
+    if (!auth || !onAuthStateChanged) {
+      console.warn('⚠️ Firebase Auth ไม่ถูก expose ไว้ใน window.firebase');
+      return;
+    }
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log('✅ ผู้ใช้เข้าสู่ระบบ:', user.email);
-        currentUser = user;
-        isAdminLoggedIn = true;
-        updateAuthUI(true, user.email);
-      } else {
-        console.log('❌ ผู้ใช้ออกจากระบบ');
-        currentUser = null;
-        isAdminLoggedIn = false;
-        updateAuthUI(false);
-        if (currentPage === 'admin') showPage('home');
-      }
+      isAdminLoggedIn = !!user;
+      console.log(isAdminLoggedIn ? `✅ Admin logged in: ${user.email}` : '🚪 Admin logged out');
+      // อัปเดต UI ถ้าโปรเจกต์เดิมมีฟังก์ชันนี้
+      if (typeof updateAuthUI === 'function') updateAuthUI(isAdminLoggedIn, user?.email || null);
+      // รีเรนเดอร์หน้าประกาศเพื่อให้ปุ่ม Edit/Delete แสดง/ซ่อนตามสิทธิ์
+      renderAnnouncementsPage(currentAnnouncementPage);
     });
   }
 
-  // ======================
-  // ✅ ฟังก์ชันใหม่
-  // ======================
-
-  // 👉 ฟังก์ชันเผยแพร่ประกาศ
+  // ===============================
+  // Create (Publish)
+  // ===============================
   async function publishAnnouncement() {
-    const { database, ref, push, set } = window.firebase;
+    const { database, ref, push, set } = window.firebase || {};
+    if (!database || !ref || !push || !set) {
+      alert('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
 
+    // ดึงค่าจากฟอร์ม
     const agencyName = document.getElementById("agency-name").value.trim();
     const agencyType = document.getElementById("agency-type").value;
     const agencyProvince = document.getElementById("agency-province").value;
@@ -2476,172 +2478,352 @@ ${announcement.contactPerson}
     const positionResponsibilities = document.getElementById("position-responsibilities").value.trim();
 
     const applicationStart = document.getElementById("application-start").value;
-    const applicationEnd = document.getElementById("application-end").value;
-    const startWorkDate = document.getElementById("start-work-date").value;
+    const applicationEnd   = document.getElementById("application-end").value;
+    const startWorkDate    = document.getElementById("start-work-date").value;
     const applicationMethod = document.getElementById("application-method").value;
     const requiredDocuments = document.getElementById("required-documents").value.trim();
-    const additionalInfo = document.getElementById("additional-info").value.trim();
+    const additionalInfo    = document.getElementById("additional-info").value.trim();
 
+    // ตรวจสอบฟิลด์บังคับ
     if (!agencyName || !agencyType || !agencyProvince || !contactPerson || !contactPhone || !contactEmail ||
-      !positionTitle || !positionLevel || !positionCount || !positionRequirements || !positionResponsibilities ||
-      !applicationStart || !applicationEnd || !applicationMethod) {
+        !positionTitle || !positionLevel || !positionCount || !positionRequirements || !positionResponsibilities ||
+        !applicationStart || !applicationEnd || !applicationMethod) {
       alert("⚠️ กรุณากรอกข้อมูลที่มี * ให้ครบถ้วน");
       return;
     }
 
     try {
       const announcementsRef = ref(database, "announcements");
-      const newAnnouncementRef = push(announcementsRef);
+      const newRef = push(announcementsRef);
 
-      await set(newAnnouncementRef, {
-        agencyName,
-        agencyType,
-        agencyProvince,
-        contactPerson,
-        contactPhone,
-        contactEmail,
-        positionTitle,
-        positionLevel,
-        positionCount,
-        salaryRange,
-        positionRequirements,
-        positionResponsibilities,
-        applicationStart,
-        applicationEnd,
-        startWorkDate,
-        applicationMethod,
-        requiredDocuments,
-        additionalInfo,
+      await set(newRef, {
+        agencyName, agencyType, agencyProvince,
+        contactPerson, contactPhone, contactEmail,
+        positionTitle, positionLevel, positionCount, salaryRange,
+        positionRequirements, positionResponsibilities,
+        applicationStart, applicationEnd, startWorkDate,
+        applicationMethod, requiredDocuments, additionalInfo,
         createdAt: new Date().toISOString(),
         status: "published"
       });
 
       alert("✅ เผยแพร่ประกาศเรียบร้อยแล้ว!");
-      showPage("announcements");
-
-    } catch (error) {
-      console.error("❌ Error publishing announcement:", error);
+      editingAnnouncementId = null;
+      if (typeof showPage === 'function') showPage("announcements");
+      // โหลดใหม่เพื่ออัปเดตลิสต์
+      loadDataFromFirebase();
+      // รีเซ็ตฟอร์ม
+      const form = document.getElementById("announcementForm");
+      if (form) form.reset();
+    } catch (err) {
+      console.error("❌ Error publishing announcement:", err);
       alert("เกิดข้อผิดพลาดในการบันทึกประกาศ");
     }
   }
 
-  // 👉 ฟังก์ชันโหลดประกาศจาก Firebase
+  // ===============================
+  // Read (Load + Render + Pagination)
+  // ===============================
   function loadDataFromFirebase() {
-    const { database, ref, onValue } = window.firebase;
+    const { database, ref, onValue } = window.firebase || {};
+    if (!database || !ref || !onValue) {
+      console.warn('⚠️ Firebase Database ไม่ถูก expose ไว้ใน window.firebase');
+      return;
+    }
 
     const announcementsRef = ref(database, "announcements");
     const announcementsList = document.getElementById("announcements-list");
     const recentAnnouncements = document.getElementById("recent-announcements");
 
-    announcementsList.innerHTML = "";
+    if (announcementsList) announcementsList.innerHTML = "";
     if (recentAnnouncements) recentAnnouncements.innerHTML = "";
 
     onValue(announcementsRef, (snapshot) => {
       if (!snapshot.exists()) {
-        announcementsList.innerHTML = "<p class='text-gray-500'>ยังไม่มีประกาศ</p>";
+        if (announcementsList) announcementsList.innerHTML = "<p class='text-gray-500'>ยังไม่มีประกาศ</p>";
+        // เคลียร์สถิติด้วย
+        setStats(0, 0, 0);
+        // เคลียร์ pagination
+        const pagination = document.getElementById("pagination");
+        if (pagination) pagination.innerHTML = "";
         return;
       }
 
       const data = snapshot.val();
-      allAnnouncements = Object.entries(data).map(([id, item]) => ({
-        id,
-        ...item
-      }));
+      allAnnouncements = Object.entries(data).map(([id, item]) => ({ id, ...item }));
 
-      allAnnouncements.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // เรียงใหม่ล่าสุดก่อน
+      allAnnouncements.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
+      // เริ่มต้นหน้าที่ 1 และเรนเดอร์
       currentAnnouncementPage = 1;
       renderAnnouncementsPage(currentAnnouncementPage);
 
+      // Recent (หน้าแรก)
       if (recentAnnouncements) {
         recentAnnouncements.innerHTML = "";
         allAnnouncements.slice(0, 3).forEach((ann) => {
           const card = document.createElement("div");
-          card.className = "bg-white p-4 rounded-lg shadow hover:shadow-md transition cursor-pointer";
+          card.className = "bg-white p-4 rounded-lg shadow hover:shadow-md transition";
           card.innerHTML = `
             <h4 class="text-lg font-bold text-blue-600">${ann.positionTitle || "-"}</h4>
             <p class="text-gray-600 text-sm">${ann.agencyName || "-"}</p>
-            <p class="text-gray-500 text-xs mt-1">📅 ${ann.applicationStart} - ${ann.applicationEnd}</p>
+            <p class="text-gray-500 text-xs mt-1">📅 ${ann.applicationStart || "-"} - ${ann.applicationEnd || "-"}</p>
           `;
           recentAnnouncements.appendChild(card);
         });
       }
 
-      document.getElementById("total-announcements").textContent = allAnnouncements.length;
-      document.getElementById("today-announcements").textContent =
-        allAnnouncements.filter((a) => a.createdAt && new Date(a.createdAt).toDateString() === new Date().toDateString()).length;
-      document.getElementById("total-positions").textContent =
-        allAnnouncements.reduce((sum, a) => sum + parseInt(a.positionCount || 0), 0);
+      // อัปเดตสถิติ
+      const total = allAnnouncements.length;
+      const today = allAnnouncements.filter(a => a.createdAt && new Date(a.createdAt).toDateString() === new Date().toDateString()).length;
+      const totalPositions = allAnnouncements.reduce((sum, a) => sum + (parseInt(a.positionCount || 0) || 0), 0);
+      setStats(total, today, totalPositions);
+    }, (error) => {
+      console.error('❌ Realtime listener error:', error);
     });
   }
 
-  // 👉 ฟังก์ชันแสดงผลประกาศตามหน้า
   function renderAnnouncementsPage(page) {
     const announcementsList = document.getElementById("announcements-list");
+    if (!announcementsList) return;
+
     announcementsList.innerHTML = "";
 
-    const start = (page - 1) * announcementsPerPage;
-    const end = start + announcementsPerPage;
-    const pageAnnouncements = allAnnouncements.slice(start, end);
+    const start = (page - 1) * ANNOUNCEMENTS_PER_PAGE;
+    const end = start + ANNOUNCEMENTS_PER_PAGE;
+    const current = allAnnouncements.slice(start, end);
 
-    pageAnnouncements.forEach((ann) => {
+    current.forEach((ann) => {
       const card = document.createElement("div");
-      card.className = "announcement-card bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition cursor-pointer";
+      card.className = "announcement-card bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition";
       card.innerHTML = `
         <h3 class="text-xl font-bold text-blue-700 mb-2">${ann.positionTitle || "-"}</h3>
         <p class="text-gray-700 mb-1"><span class="font-semibold">หน่วยงาน:</span> ${ann.agencyName || "-"}</p>
         <p class="text-gray-700 mb-1"><span class="font-semibold">จังหวัด:</span> ${ann.agencyProvince || "-"}</p>
         <p class="text-gray-700 mb-1"><span class="font-semibold">จำนวน:</span> ${ann.positionCount || "0"} ตำแหน่ง</p>
-        <p class="text-gray-600 text-sm mt-2">📅 รับสมัคร: ${ann.applicationStart} ถึง ${ann.applicationEnd}</p>
+        <p class="text-gray-600 text-sm mt-2">📅 รับสมัคร: ${ann.applicationStart || "-"} ถึง ${ann.applicationEnd || "-"}</p>
       `;
+
+      // ปุ่มสำหรับ Admin
+      if (isAdminLoggedIn) {
+        const controls = document.createElement("div");
+        controls.className = "mt-3 flex gap-2";
+        controls.innerHTML = `
+          <button class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600" onclick="editAnnouncement('${ann.id}')">✏️ แก้ไข</button>
+          <button class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" onclick="deleteAnnouncement('${ann.id}')">🗑️ ลบ</button>
+        `;
+        card.appendChild(controls);
+      }
+
       announcementsList.appendChild(card);
     });
 
-    const totalPages = Math.ceil(allAnnouncements.length / announcementsPerPage);
+    // Pagination
+    const totalPages = Math.ceil(allAnnouncements.length / ANNOUNCEMENTS_PER_PAGE) || 1;
     setupPagination(totalPages, page);
   }
 
-  // 👉 ฟังก์ชันสร้างปุ่ม Pagination
   function setupPagination(totalPages, currentPage) {
     const pagination = document.getElementById("pagination");
-    pagination.innerHTML = "";
+    if (!pagination) return;
 
+    pagination.innerHTML = "";
     if (totalPages <= 1) return;
 
+    // Prev
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "←";
-    prevBtn.className = "px-3 py-1 rounded bg-gray-200 hover:bg-gray-300";
+    prevBtn.className = "px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50";
     prevBtn.disabled = currentPage === 1;
     prevBtn.onclick = () => {
-      currentAnnouncementPage--;
+      currentAnnouncementPage = Math.max(1, currentAnnouncementPage - 1);
       renderAnnouncementsPage(currentAnnouncementPage);
     };
     pagination.appendChild(prevBtn);
 
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      btn.className =
-        "px-3 py-1 rounded " +
-        (i === currentPage ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300");
-      btn.onclick = () => {
-        currentAnnouncementPage = i;
-        renderAnnouncementsPage(i);
-      };
-      pagination.appendChild(btn);
+    // Numbered pages (ย่อเมื่อยาว)
+    const MAX_PAGE_BUTTONS = 7;
+    let pages = [];
+    if (totalPages <= MAX_PAGE_BUTTONS) {
+      pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+    } else {
+      // 1 ... mid-1, mid, mid+1 ... total
+      const left = Math.max(2, currentPage - 1);
+      const right = Math.min(totalPages - 1, currentPage + 1);
+      pages = [1, ...(left > 2 ? ['...'] : []), ...range(left, right), ...(right < totalPages - 1 ? ['...'] : []), totalPages];
     }
 
+    pages.forEach(p => {
+      if (p === '...') {
+        const dot = document.createElement("span");
+        dot.textContent = '...';
+        dot.className = "px-2";
+        pagination.appendChild(dot);
+      } else {
+        const btn = document.createElement("button");
+        btn.textContent = p;
+        btn.className = "px-3 py-1 rounded " + (p === currentPage ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300");
+        btn.onclick = () => { currentAnnouncementPage = p; renderAnnouncementsPage(p); };
+        pagination.appendChild(btn);
+      }
+    });
+
+    // Next
     const nextBtn = document.createElement("button");
     nextBtn.textContent = "→";
-    nextBtn.className = "px-3 py-1 rounded bg-gray-200 hover:bg-gray-300";
+    nextBtn.className = "px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50";
     nextBtn.disabled = currentPage === totalPages;
     nextBtn.onclick = () => {
-      currentAnnouncementPage++;
+      currentAnnouncementPage = Math.min(totalPages, currentAnnouncementPage + 1);
       renderAnnouncementsPage(currentAnnouncementPage);
     };
     pagination.appendChild(nextBtn);
   }
+
+  function range(a, b) {
+    const out = [];
+    for (let i = a; i <= b; i++) out.push(i);
+    return out;
+  }
+
+  function setStats(total, today, totalPositions) {
+    const totalEl = document.getElementById("total-announcements");
+    const todayEl = document.getElementById("today-announcements");
+    const posEl   = document.getElementById("total-positions");
+    if (totalEl) totalEl.textContent = total;
+    if (todayEl) todayEl.textContent = today;
+    if (posEl) posEl.textContent = totalPositions;
+  }
+
+  // ===============================
+  // Update (Edit → Update)
+  // ===============================
+  function editAnnouncement(id) {
+    const ann = allAnnouncements.find(a => a.id === id);
+    if (!ann) return;
+
+    // เติมข้อมูลเดิมลงฟอร์ม
+    setValue("agency-name", ann.agencyName);
+    setValue("agency-type", ann.agencyType);
+    setValue("agency-province", ann.agencyProvince);
+    setValue("contact-person", ann.contactPerson);
+    setValue("contact-phone", ann.contactPhone);
+    setValue("contact-email", ann.contactEmail);
+
+    setValue("position-title", ann.positionTitle);
+    setValue("position-level", ann.positionLevel);
+    setValue("position-count", ann.positionCount);
+    setValue("salary-range", ann.salaryRange);
+    setValue("position-requirements", ann.positionRequirements);
+    setValue("position-responsibilities", ann.positionResponsibilities);
+
+    setValue("application-start", ann.applicationStart);
+    setValue("application-end", ann.applicationEnd);
+    setValue("start-work-date", ann.startWorkDate);
+    setValue("application-method", ann.applicationMethod);
+    setValue("required-documents", ann.requiredDocuments);
+    setValue("additional-info", ann.additionalInfo);
+
+    editingAnnouncementId = id;
+
+    // ไปหน้าเพิ่ม/แก้ประกาศ (ใช้หน้าเดียวกัน)
+    if (typeof showPage === 'function') showPage("publish");
+  }
+
+  async function updateAnnouncement() {
+    if (!editingAnnouncementId) return;
+
+    const { database, ref, update } = window.firebase || {};
+    if (!database || !ref || !update) {
+      alert('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+
+    const annRef = ref(database, "announcements/" + editingAnnouncementId);
+
+    const payload = {
+      agencyName: getValue("agency-name"),
+      agencyType: getValue("agency-type"),
+      agencyProvince: getValue("agency-province"),
+      contactPerson: getValue("contact-person"),
+      contactPhone: getValue("contact-phone"),
+      contactEmail: getValue("contact-email"),
+
+      positionTitle: getValue("position-title"),
+      positionLevel: getValue("position-level"),
+      positionCount: getValue("position-count"),
+      salaryRange: getValue("salary-range"),
+      positionRequirements: getValue("position-requirements"),
+      positionResponsibilities: getValue("position-responsibilities"),
+
+      applicationStart: getValue("application-start"),
+      applicationEnd: getValue("application-end"),
+      startWorkDate: getValue("start-work-date"),
+      applicationMethod: getValue("application-method"),
+      requiredDocuments: getValue("required-documents"),
+      additionalInfo: getValue("additional-info"),
+
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await update(annRef, payload);
+      alert("✅ แก้ไขประกาศเรียบร้อยแล้ว!");
+      editingAnnouncementId = null;
+      if (typeof showPage === 'function') showPage("announcements");
+      loadDataFromFirebase();
+      const form = document.getElementById("announcementForm");
+      if (form) form.reset();
+    } catch (err) {
+      console.error("❌ Error updating announcement:", err);
+      alert("เกิดข้อผิดพลาดในการแก้ไข");
+    }
+  }
+
+  // ===============================
+  // Delete
+  // ===============================
+  async function deleteAnnouncement(id) {
+    if (!confirm("⚠️ ต้องการลบประกาศนี้จริงหรือไม่?")) return;
+
+    const { database, ref, remove } = window.firebase || {};
+    if (!database || !ref || !remove) {
+      alert('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+
+    try {
+      await remove(ref(database, "announcements/" + id));
+      alert("🗑️ ลบประกาศเรียบร้อยแล้ว!");
+      loadDataFromFirebase();
+    } catch (err) {
+      console.error("❌ Error deleting announcement:", err);
+      alert("เกิดข้อผิดพลาดในการลบ");
+    }
+  }
+
+  // ===============================
+  // Helpers
+  // ===============================
+  function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? "";
+  }
+  function getValue(id) {
+    const el = document.getElementById(id);
+    return el ? (el.value ?? "").trim() : "";
+  }
+
+  // ===============================
+  // Expose functions to buttons (ถ้าปุ่มเรียกโดย onclick="")
+  // ===============================
+  window.publishAnnouncement = publishAnnouncement;
+  window.updateAnnouncement  = updateAnnouncement;
+  window.editAnnouncement    = editAnnouncement;
+  window.deleteAnnouncement  = deleteAnnouncement;
 </script>
 </body>
 </html>
+
 
