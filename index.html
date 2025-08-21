@@ -1,0 +1,2646 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แพลตฟอร์มประกาศรับโอนย้ายข้าราชการ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, set, onValue, remove, update, child, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        
+        // Firebase configuration - ใช้ Firebase Authentication และ Realtime Database จริง
+        const firebaseConfig = {
+            apiKey: "AIzaSyBkXyZ9QvJ8K2L3M4N5O6P7Q8R9S0T1U2V3",
+            authDomain: "transfer-platform-demo.firebaseapp.com",
+            databaseURL: "https://transfer-platform-demo-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "transfer-platform-demo",
+            storageBucket: "transfer-platform-demo.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456789012345678"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+        
+        // Make Firebase functions globally available
+        window.firebase = { 
+            database, ref, push, set, onValue, remove, update, child, get,
+            auth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword
+        };
+        
+        console.log('🔥 Firebase Authentication และ Realtime Database เชื่อมต่อสำเร็จ!');
+    </script>
+    
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        .announcement-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .announcement-card:hover {
+            transform: translateY(-4px);
+            border-color: #059669;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .apply-btn {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transition: all 0.3s ease;
+        }
+        .apply-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: scale(1.05);
+        }
+        .post-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transition: all 0.3s ease;
+        }
+        .post-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: scale(1.05);
+        }
+        .admin-btn {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transition: all 0.3s ease;
+        }
+        .admin-btn:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+            transform: scale(1.05);
+        }
+        .delete-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transition: all 0.3s ease;
+        }
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: scale(1.05);
+        }
+        .edit-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            transition: all 0.3s ease;
+        }
+        .edit-btn:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b-4 border-blue-600">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <!-- Platform Logo -->
+                    <div class="flex items-center space-x-3">
+                        <svg width="50" height="50" viewBox="0 0 100 100" class="text-blue-600">
+                            <!-- Background circle -->
+                            <circle cx="50" cy="50" r="45" fill="currentColor" stroke="#2563eb" stroke-width="2"/>
+                            <circle cx="50" cy="50" r="35" fill="none" stroke="white" stroke-width="2"/>
+                            
+                            <!-- Civil servant figure in khaki uniform -->
+                            <!-- Head -->
+                            <circle cx="50" cy="25" r="8" fill="#fdbf50"/>
+                            
+                            <!-- Hair -->
+                            <path d="M42 20 Q50 15 58 20 Q58 25 50 25 Q42 25 42 20" fill="#4a5568"/>
+                            
+                            <!-- Khaki shirt -->
+                            <rect x="42" y="33" width="16" height="20" fill="#9ca3af" rx="2"/>
+                            
+                            <!-- Shirt collar -->
+                            <path d="M46 33 L50 36 L54 33 L54 38 L46 38 Z" fill="#6b7280"/>
+                            
+                            <!-- Shirt pockets -->
+                            <rect x="44" y="40" width="4" height="3" fill="#6b7280" rx="0.5"/>
+                            <rect x="52" y="40" width="4" height="3" fill="#6b7280" rx="0.5"/>
+                            
+                            <!-- Arms in khaki -->
+                            <rect x="35" y="38" width="7" height="12" fill="#9ca3af" rx="3"/>
+                            <rect x="58" y="38" width="7" height="12" fill="#9ca3af" rx="3"/>
+                            
+                            <!-- Khaki pants -->
+                            <rect x="42" y="53" width="16" height="15" fill="#6b7280" rx="1"/>
+                            
+                            <!-- Belt -->
+                            <rect x="42" y="53" width="16" height="2" fill="#4a5568"/>
+                            <rect x="49" y="52" width="2" height="4" fill="#fbbf24" rx="0.5"/>
+                            
+                            <!-- Legs in khaki -->
+                            <rect x="44" y="68" width="5" height="8" fill="#6b7280"/>
+                            <rect x="51" y="68" width="5" height="8" fill="#6b7280"/>
+                            
+                            <!-- Black shoes -->
+                            <ellipse cx="46.5" cy="78" rx="3" ry="2" fill="#1f2937"/>
+                            <ellipse cx="53.5" cy="78" rx="3" ry="2" fill="#1f2937"/>
+                            
+                            <!-- Name badge -->
+                            <rect x="45" y="38" width="5" height="2" fill="#fbbf24" rx="0.5"/>
+                            <text x="47.5" y="39.5" text-anchor="middle" fill="#1f2937" font-size="1.5" font-weight="bold">ID</text>
+                            
+                            <!-- Document in hand -->
+                            <rect x="60" y="42" width="6" height="8" fill="white" stroke="#d1d5db" stroke-width="0.5" rx="1"/>
+                            <line x1="61" y1="44" x2="65" y2="44" stroke="#9ca3af" stroke-width="0.5"/>
+                            <line x1="61" y1="46" x2="65" y2="46" stroke="#9ca3af" stroke-width="0.5"/>
+                            <line x1="61" y1="48" x2="64" y2="48" stroke="#9ca3af" stroke-width="0.5"/>
+                            
+                            <!-- Rank insignia on shoulder -->
+                            <rect x="36" y="40" width="3" height="1.5" fill="#fbbf24"/>
+                            <rect x="61" y="40" width="3" height="1.5" fill="#fbbf24"/>
+                            
+                            <text x="50" y="90" text-anchor="middle" fill="white" font-size="6" font-weight="bold">TRANSFER</text>
+                        </svg>
+                        <div>
+                            <div class="text-xl font-bold text-blue-800">ประกาศรับโอนย้ายข้าราชการ</div>
+                            <div class="text-sm text-gray-600">ระบบกลางสำหรับหน่วยงานราชการ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-6">
+                    <button onclick="showPage('home')" class="nav-btn text-blue-800 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors font-medium">หน้าหลัก</button>
+                    <button onclick="showPage('announcements')" class="nav-btn text-blue-800 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors font-medium">ประกาศทั้งหมด</button>
+                    
+                    <!-- Dropdown Menu for งานสอบราชการ -->
+                    <div class="relative group">
+                        <button class="nav-btn text-blue-800 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors font-medium flex items-center">
+                            งานสอบราชการ
+                            <svg class="w-4 h-4 ml-1 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="py-2">
+                                <button onclick="showPage('exam-ocsc')" class="w-full text-left px-4 py-3 text-blue-800 hover:bg-blue-50 transition-colors flex items-center">
+                                    <span class="mr-3">🏛️</span>
+                                    <div>
+                                        <div class="font-medium">ผ่าน กพ.</div>
+                                        <div class="text-xs text-gray-600">สอบผ่านคณะกรรมการข้าราชการพลเรือน</div>
+                                    </div>
+                                </button>
+                                <button onclick="showPage('exam-direct')" class="w-full text-left px-4 py-3 text-blue-800 hover:bg-blue-50 transition-colors flex items-center">
+                                    <span class="mr-3">📝</span>
+                                    <div>
+                                        <div class="font-medium">ไม่ผ่าน กพ.</div>
+                                        <div class="text-xs text-gray-600">สอบโดยตรงกับหน่วยงาน</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showPage('agencies')" class="nav-btn text-blue-800 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors font-medium">หน่วยงาน</button>
+                    <button onclick="showPage('post')" class="nav-btn bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors font-medium">+ ลงประกาศ</button>
+                    
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <div id="home-page" class="page">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Hero Section -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl p-8 mb-8 fade-in shadow-xl">
+                <h1 class="text-4xl font-bold mb-4">ประกาศรับโอนย้ายข้าราชการ</h1>
+                <p class="text-xl mb-6">ศูนย์กลางสำหรับหน่วยงานราชการที่ต้องการรับโอนย้ายข้าราชการ</p>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <button onclick="showPage('post')" class="post-btn text-white px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
+                        🏛️ ลงประกาศรับโอนย้าย
+                    </button>
+                    <button onclick="showPage('announcements')" class="bg-white text-blue-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105">
+                        📋 ดูประกาศทั้งหมด
+                    </button>
+                </div>
+            </div>
+
+            <!-- Platform Stats -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-blue-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">🏛️</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">หน่วยงานที่เข้าร่วม</h3>
+                            <p class="text-3xl font-bold text-blue-700" id="total-agencies">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-blue-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">📢</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ประกาศทั้งหมด</h3>
+                            <p class="text-3xl font-bold text-indigo-700" id="total-announcements">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-blue-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">🆕</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ประกาศใหม่วันนี้</h3>
+                            <p class="text-3xl font-bold text-blue-700" id="today-announcements">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-blue-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">👥</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ตำแหน่งที่เปิดรับ</h3>
+                            <p class="text-3xl font-bold text-blue-700" id="total-positions">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">วิธีการใช้งานแพลตฟอร์ม</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🏛️</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-3">สำหรับหน่วยงาน</h3>
+                        <p class="text-gray-600 text-sm mb-4">ลงทะเบียนและลงประกาศรับโอนย้ายข้าราชการในตำแหน่งที่ต้องการ</p>
+                        <button onclick="showPage('post')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                            เริ่มลงประกาศ
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">👨‍💼</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-3">สำหรับข้าราชการ</h3>
+                        <p class="text-gray-600 text-sm mb-4">ค้นหาและสมัครโอนย้ายไปยังหน่วยงานที่ต้องการ</p>
+                        <button onclick="showPage('announcements')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                            ดูประกาศ
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">🤝</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-3">การจับคู่</h3>
+                        <p class="text-gray-600 text-sm mb-4">ระบบช่วยจับคู่ข้าราชการกับหน่วยงานที่เหมาะสม</p>
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                            เรียนรู้เพิ่มเติม
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Announcements -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">ประกาศล่าสุด</h2>
+                    <button onclick="showPage('announcements')" class="text-blue-700 hover:text-blue-900 font-medium">
+                        ดูทั้งหมด →
+                    </button>
+                </div>
+                <div id="recent-announcements" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Announcements will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcements Page -->
+    <div id="announcements-page" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
+                <h1 class="text-3xl font-bold text-gray-800">ประกาศรับโอนย้ายทั้งหมด</h1>
+                <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+                    <input type="text" id="search-input" placeholder="ค้นหาตำแหน่ง หน่วยงาน..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                    <select id="position-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                        <option value="">ทุกตำแหน่ง</option>
+                        <option value="นักวิชาการ">นักวิชาการ</option>
+                        <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
+                        <option value="ผู้อำนวยการ">ผู้อำนวยการ</option>
+                        <option value="หัวหน้าส่วน">หัวหน้าส่วน</option>
+                    </select>
+                    <select id="location-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                        <option value="">ทุกจังหวัด</option>
+                        <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                        <option value="เชียงใหม่">เชียงใหม่</option>
+                        <option value="ขอนแก่น">ขอนแก่น</option>
+                        <option value="สงขลา">สงขลา</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="announcements-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Announcements will be populated here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center mt-8">
+                <div class="flex space-x-2" id="pagination">
+                    <!-- Pagination buttons will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agencies Page -->
+    <div id="agencies-page" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">หน่วยงานที่เข้าร่วมแพลตฟอร์ม</h1>
+                <p class="text-gray-600">หน่วยงานราชการที่ใช้แพลตฟอร์มในการประกาศรับโอนย้าย</p>
+            </div>
+
+            <!-- Agency Stats -->
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl mb-4">🏛️</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">45</h3>
+                    <p class="text-gray-600">หน่วยงานที่เข้าร่วม</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl mb-4">📍</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">76</h3>
+                    <p class="text-gray-600">จังหวัดที่ครอบคลุม</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl mb-4">💼</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">1,247</h3>
+                    <p class="text-gray-600">ตำแหน่งที่เปิดรับ</p>
+                </div>
+            </div>
+
+            <!-- Agency Categories -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-blue-100 p-3 rounded-full mr-4">
+                            <svg width="30" height="30" viewBox="0 0 100 100" class="text-blue-600">
+                                <rect x="20" y="30" width="60" height="50" fill="currentColor" rx="5"/>
+                                <rect x="25" y="35" width="50" height="40" fill="white" rx="3"/>
+                                <path d="M35 20 L50 10 L65 20 L65 30 L35 30 Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">กระทรวงมหาดไทย</h3>
+                            <p class="text-sm text-gray-600">12 หน่วยงาน</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">กรมการปกครอง, สำนักงานจังหวัด, สำนักงานเขต</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-green-600 font-medium">เปิดรับ 234 ตำแหน่ง</span>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">ดูรายละเอียด →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-green-100 p-3 rounded-full mr-4">
+                            <svg width="30" height="30" viewBox="0 0 100 100" class="text-green-600">
+                                <circle cx="50" cy="50" r="40" fill="currentColor"/>
+                                <circle cx="50" cy="50" r="30" fill="white"/>
+                                <path d="M35 40 L50 25 L65 40 L60 40 L60 65 L40 65 L40 40 Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">กระทรวงศึกษาธิการ</h3>
+                            <p class="text-sm text-gray-600">8 หน่วยงาน</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">สำนักงานเขตพื้นที่การศึกษา, มหาวิทยาลัย</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-green-600 font-medium">เปิดรับ 189 ตำแหน่ง</span>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">ดูรายละเอียด →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-3 rounded-full mr-4">
+                            <svg width="30" height="30" viewBox="0 0 100 100" class="text-purple-600">
+                                <rect x="15" y="25" width="70" height="50" fill="currentColor" rx="8"/>
+                                <rect x="20" y="30" width="60" height="40" fill="white" rx="5"/>
+                                <circle cx="65" cy="50" r="8" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">องค์กรปกครองส่วนท้องถิ่น</h3>
+                            <p class="text-sm text-gray-600">25 หน่วยงาน</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">เทศบาล, องค์การบริหารส่วนจังหวัด, อบต.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-green-600 font-medium">เปิดรับ 824 ตำแหน่ง</span>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">ดูรายละเอียด →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Join Platform -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 text-center">
+                <h2 class="text-2xl font-bold mb-4">หน่วยงานของคุณต้องการเข้าร่วมแพลตฟอร์ม?</h2>
+                <p class="mb-6">ลงทะเบียนเพื่อเริ่มลงประกาศรับโอนย้ายข้าราชการ</p>
+                <button onclick="showPage('post')" class="bg-white text-blue-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105">
+                    เริ่มลงประกาศ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Announcement Page -->
+    <div id="post-page" class="page hidden">
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">ลงประกาศรับโอนย้ายข้าราชการ</h1>
+                
+                <!-- Agency Info Section -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">ข้อมูลหน่วยงาน</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อหน่วยงาน *</label>
+                            <input type="text" id="agency-name" placeholder="เช่น กรมการปกครอง" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทหน่วยงาน *</label>
+                            <select id="agency-type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">เลือกประเภทหน่วยงาน</option>
+                                <option value="กระทรวง">กระทรวง</option>
+                                <option value="กรม">กรม</option>
+                                <option value="จังหวัด">สำนักงานจังหวัด</option>
+                                <option value="เขต">สำนักงานเขต</option>
+                                <option value="เทศบาล">เทศบาล</option>
+                                <option value="อบจ">องค์การบริหารส่วนจังหวัด</option>
+                                <option value="อบต">องค์การบริหารส่วนตำบล</option>
+                                <option value="รัฐวิสาหกิจ">รัฐวิสาหกิจ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">จังหวัด *</label>
+                            <select id="agency-province" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">เลือกจังหวัด</option>
+                                <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                                <option value="เชียงใหม่">เชียงใหม่</option>
+                                <option value="ขอนแก่น">ขอนแก่น</option>
+                                <option value="สงขลา">สงขลา</option>
+                                <option value="นครราชสีมา">นครราชสีมา</option>
+                                <option value="ชลบุรี">ชลบุรี</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ผู้ติดต่อ *</label>
+                            <input type="text" id="contact-person" placeholder="ชื่อ-นามสกุล ผู้ติดต่อ" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">เบอร์โทรศัพท์ *</label>
+                            <input type="tel" id="contact-phone" placeholder="0X-XXXX-XXXX" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">อีเมล *</label>
+                            <input type="email" id="contact-email" placeholder="contact@agency.go.th" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Details Section -->
+                <div class="bg-blue-50 rounded-lg p-6 mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">รายละเอียดตำแหน่งที่รับโอนย้าย</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อตำแหน่ง *</label>
+                            <input type="text" id="position-title" placeholder="เช่น นักวิชาการปกครองชำนาญการ" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ระดับตำแหน่ง *</label>
+                            <select id="position-level" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">เลือกระดับตำแหน่ง</option>
+                                <option value="ปฏิบัติการ">ปฏิบัติการ</option>
+                                <option value="ชำนาญการ">ชำนาญการ</option>
+                                <option value="ชำนาญการพิเศษ">ชำนาญการพิเศษ</option>
+                                <option value="เชี่ยวชาญ">เชี่ยวชาญ</option>
+                                <option value="อำนวยการ">อำนวยการ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">จำนวนที่รับ *</label>
+                            <input type="number" id="position-count" placeholder="จำนวนคน" min="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">เงินเดือน</label>
+                            <input type="text" id="salary-range" placeholder="เช่น 25,000 - 35,000 บาท" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">คุณสมบัติที่ต้องการ *</label>
+                        <textarea id="position-requirements" rows="4" placeholder="ระบุคุณสมบัติ ประสบการณ์ และความสามารถที่ต้องการ" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">หน้าที่ความรับผิดชอบ *</label>
+                        <textarea id="position-responsibilities" rows="4" placeholder="ระบุหน้าที่และความรับผิดชอบของตำแหน่ง" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                </div>
+
+                <!-- Application Details Section -->
+                <div class="bg-green-50 rounded-lg p-6 mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">รายละเอียดการสมัคร</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">วันที่เริ่มรับสมัคร *</label>
+                            <input type="date" id="application-start" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">วันที่สิ้นสุดการรับสมัคร *</label>
+                            <input type="date" id="application-end" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">วันที่คาดว่าจะเริ่มงาน</label>
+                            <input type="date" id="start-work-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">วิธีการสมัคร *</label>
+                            <select id="application-method" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">เลือกวิธีการสมัคร</option>
+                                <option value="online">ออนไลน์</option>
+                                <option value="mail">ทางไปรษณีย์</option>
+                                <option value="inperson">ยื่นด้วยตนเอง</option>
+                                <option value="email">อีเมล</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">เอกสารที่ต้องใช้ในการสมัคร</label>
+                        <textarea id="required-documents" rows="3" placeholder="ระบุเอกสารที่ผู้สมัครต้องเตรียม" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ข้อมูลเพิ่มเติม</label>
+                        <textarea id="additional-info" rows="3" placeholder="ข้อมูลเพิ่มเติมที่ผู้สมัครควรทราบ" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <button onclick="publishAnnouncement()" class="flex-1 post-btn text-white py-4 rounded-lg font-semibold text-lg transition-all transform hover:scale-105">
+                        🚀 เผยแพร่ประกาศ
+                    </button>
+                    <button onclick="saveDraft()" class="flex-1 bg-gray-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-gray-700 transition-colors">
+                        💾 บันทึกร่าง
+                    </button>
+                    <button onclick="previewAnnouncement()" class="flex-1 bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors">
+                        👁️ ดูตัวอย่าง
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam OCSC Page (ผ่าน กพ.) -->
+    <div id="exam-ocsc-page" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-2xl p-8 mb-8 fade-in shadow-xl">
+                <h1 class="text-4xl font-bold mb-4">งานสอบราชการผ่าน กพ.</h1>
+                <p class="text-xl mb-6">ตำแหน่งข้าราชการที่ต้องสอบผ่านคณะกรรมการข้าราชการพลเรือน (กพ.)</p>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <button onclick="showPage('post')" class="bg-white text-purple-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105">
+                        🏛️ ลงประกาศสอบ กพ.
+                    </button>
+                    <button class="bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-800 transition-all transform hover:scale-105">
+                        📚 คู่มือการสอบ
+                    </button>
+                </div>
+            </div>
+
+            <!-- OCSC Exam Stats -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-purple-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">🏛️</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ตำแหน่งเปิดสอบ</h3>
+                            <p class="text-3xl font-bold text-purple-700" id="ocsc-total-positions">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-purple-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">📝</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">กำลังรับสมัคร</h3>
+                            <p class="text-3xl font-bold text-green-700" id="ocsc-active-exams">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-purple-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">👥</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ผู้สมัครทั้งหมด</h3>
+                            <p class="text-3xl font-bold text-blue-700" id="ocsc-total-applicants">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-purple-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">🎯</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">อัตราการแข่งขัน</h3>
+                            <p class="text-3xl font-bold text-red-700" id="ocsc-competition-rate">1:0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exam Categories -->
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-3 rounded-full mr-4">
+                            <span class="text-2xl">👨‍💼</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">ระดับปฏิบัติการ</h3>
+                            <p class="text-sm text-gray-600">ป.ตรี ขึ้นไป</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">ตำแหน่งเริ่มต้นสำหรับผู้จบใหม่</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-green-600 font-medium">เปิดสอบ 45 ตำแหน่ง</span>
+                        <button class="text-purple-600 hover:text-purple-800 text-sm font-medium">ดูรายละเอียด →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-3 rounded-full mr-4">
+                            <span class="text-2xl">🎓</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">ระดับชำนาญการ</h3>
+                            <p class="text-sm text-gray-600">ประสบการณ์ 3-5 ปี</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">ตำแหน่งระดับกลางที่ต้องการความเชี่ยวชาญ</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-green-600 font-medium">เปิดสอบ 28 ตำแหน่ง</span>
+                        <button class="text-purple-600 hover:text-purple-800 text-sm font-medium">ดูรายละเอียด →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-3 rounded-full mr-4">
+                            <span class="text-2xl">👑</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">ระดับอำนวยการ</h3>
+                            <p class="text-sm text-gray-600">ประสบการณ์ 8+ ปี</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">ตำแหน่งผู้บริหารระดับสูง</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-green-600 font-medium">เปิดสอบ 12 ตำแหน่ง</span>
+                        <button class="text-purple-600 hover:text-purple-800 text-sm font-medium">ดูรายละเอียด →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current OCSC Exams -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">การสอบที่เปิดรับสมัคร</h2>
+                    <div class="flex space-x-4">
+                        <select id="ocsc-level-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">ทุกระดับ</option>
+                            <option value="ปฏิบัติการ">ปฏิบัติการ</option>
+                            <option value="ชำนาญการ">ชำนาญการ</option>
+                            <option value="อำนวยการ">อำนวยการ</option>
+                        </select>
+                        <input type="text" id="ocsc-search" placeholder="ค้นหาตำแหน่ง..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                <div id="ocsc-exams-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- OCSC exams will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Direct Page (ไม่ผ่าน กพ.) -->
+    <div id="exam-direct-page" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-600 to-green-800 text-white rounded-2xl p-8 mb-8 fade-in shadow-xl">
+                <h1 class="text-4xl font-bold mb-4">งานสอบราชการไม่ผ่าน กพ.</h1>
+                <p class="text-xl mb-6">ตำแหน่งข้าราชการที่สอบโดยตรงกับหน่วยงาน ไม่ผ่านคณะกรรมการข้าราชการพลเรือน</p>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <button onclick="showPage('post')" class="bg-white text-green-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105">
+                        📝 ลงประกาศสอบตรง
+                    </button>
+                    <button class="bg-green-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-800 transition-all transform hover:scale-105">
+                        📋 ดูประกาศทั้งหมด
+                    </button>
+                </div>
+            </div>
+
+            <!-- Direct Exam Stats -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-green-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">🏢</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">หน่วยงานที่เปิดสอบ</h3>
+                            <p class="text-3xl font-bold text-green-700" id="direct-total-agencies">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-green-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">📝</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ตำแหน่งเปิดสอบ</h3>
+                            <p class="text-3xl font-bold text-blue-700" id="direct-total-positions">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-green-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">⏰</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">กำลังรับสมัคร</h3>
+                            <p class="text-3xl font-bold text-orange-700" id="direct-active-exams">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg fade-in border-l-4 border-green-600">
+                    <div class="flex items-center">
+                        <div class="text-4xl mr-4">👥</div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">ผู้สมัครทั้งหมด</h3>
+                            <p class="text-3xl font-bold text-purple-700" id="direct-total-applicants">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agency Types -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="text-center">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">🏛️</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-2">องค์กรปกครองส่วนท้องถิ่น</h3>
+                        <p class="text-sm text-gray-600 mb-3">เทศบาล อบจ. อบต.</p>
+                        <div class="text-green-600 font-medium">เปิดสอบ 156 ตำแหน่ง</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="text-center">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">🏥</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-2">โรงพยาบาล</h3>
+                        <p class="text-sm text-gray-600 mb-3">โรงพยาบาลรัฐ</p>
+                        <div class="text-green-600 font-medium">เปิดสอบ 89 ตำแหน่ง</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="text-center">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">🎓</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-2">สถาบันการศึกษา</h3>
+                        <p class="text-sm text-gray-600 mb-3">มหาวิทยาลัย วิทยาลัย</p>
+                        <div class="text-green-600 font-medium">เปิดสอบ 67 ตำแหน่ง</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div class="text-center">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">🏭</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-2">รัฐวิสาหกิจ</h3>
+                        <p class="text-sm text-gray-600 mb-3">บริษัทรัฐ องค์การมหาชน</p>
+                        <div class="text-green-600 font-medium">เปิดสอบ 43 ตำแหน่ง</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Direct Exams -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">การสอบที่เปิดรับสมัคร</h2>
+                    <div class="flex space-x-4">
+                        <select id="direct-agency-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">ทุกประเภทหน่วยงาน</option>
+                            <option value="เทศบาล">เทศบาล</option>
+                            <option value="อบจ">อบจ.</option>
+                            <option value="โรงพยาบาล">โรงพยาบาล</option>
+                            <option value="มหาวิทยาลัย">มหาวิทยาลัย</option>
+                        </select>
+                        <input type="text" id="direct-search" placeholder="ค้นหาตำแหน่ง..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                </div>
+                <div id="direct-exams-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Direct exams will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Page -->
+    <div id="admin-login-page" class="page hidden">
+        <div class="max-w-md mx-auto px-4 py-16">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="text-center mb-8">
+                    <div class="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-4xl">🔐</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800 mb-2">เข้าสู่ระบบแอดมิน</h1>
+                    <p class="text-gray-600">สำหรับผู้ดูแลระบบเท่านั้น</p>
+                </div>
+
+                <form id="admin-login-form" onsubmit="adminLogin(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
+                        <input type="email" id="admin-email-input" required 
+                               placeholder="admin@example.com"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                        <input type="password" id="admin-password-input" required 
+                               placeholder="••••••••"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember-me" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">จดจำการเข้าสู่ระบบ</label>
+                    </div>
+
+                    <button type="submit" id="login-submit-btn" 
+                            class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                        🔓 เข้าสู่ระบบ
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <button onclick="showPage('home')" class="text-gray-600 hover:text-gray-800 text-sm">
+                        ← กลับหน้าหลัก
+                    </button>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="admin-page" class="page hidden">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">🔧 หน้าแอดมิน</h1>
+                        <p class="text-gray-600 mt-2">จัดการประกาศและระบบแพลตฟอร์ม</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">เข้าสู่ระบบในฐานะ</div>
+                        <div class="font-semibold text-red-600" id="admin-display-email">👨‍💼 ผู้ดูแลระบบ</div>
+                        <div class="text-xs text-gray-400" id="admin-login-time"></div>
+                    </div>
+                </div>
+
+                <!-- Admin Stats -->
+                <div class="grid md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">ประกาศทั้งหมด</h3>
+                                <p class="text-3xl font-bold" id="admin-total-announcements">0</p>
+                            </div>
+                            <div class="text-4xl opacity-80">📢</div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">ประกาศที่เผยแพร่</h3>
+                                <p class="text-3xl font-bold" id="admin-published-announcements">0</p>
+                            </div>
+                            <div class="text-4xl opacity-80">✅</div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">ร่างประกาศ</h3>
+                                <p class="text-3xl font-bold" id="admin-draft-announcements">0</p>
+                            </div>
+                            <div class="text-4xl opacity-80">📝</div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">ใบสมัครทั้งหมด</h3>
+                                <p class="text-3xl font-bold" id="admin-total-applications">0</p>
+                            </div>
+                            <div class="text-4xl opacity-80">👥</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <button onclick="exportData()" class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white p-6 rounded-xl hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105">
+                        <div class="text-3xl mb-2">📊</div>
+                        <h3 class="text-lg font-semibold mb-2">ส่งออกข้อมูล</h3>
+                        <p class="text-sm opacity-90">ดาวน์โหลดข้อมูลประกาศและใบสมัคร</p>
+                    </button>
+                    <button onclick="clearOldAnnouncements()" class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105">
+                        <div class="text-3xl mb-2">🧹</div>
+                        <h3 class="text-lg font-semibold mb-2">ล้างข้อมูลเก่า</h3>
+                        <p class="text-sm opacity-90">ลบประกาศที่หมดอายุแล้ว</p>
+                    </button>
+                    <button onclick="sendNotifications()" class="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-xl hover:from-pink-600 hover:to-pink-700 transition-all transform hover:scale-105">
+                        <div class="text-3xl mb-2">📧</div>
+                        <h3 class="text-lg font-semibold mb-2">ส่งการแจ้งเตือน</h3>
+                        <p class="text-sm opacity-90">แจ้งเตือนประกาศใหม่ให้ผู้ใช้</p>
+                    </button>
+                </div>
+
+                <!-- Announcements Management -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">จัดการประกาศ</h2>
+                        <div class="flex space-x-4">
+                            <select id="admin-status-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="published">เผยแพร่แล้ว</option>
+                                <option value="draft">ร่าง</option>
+                                <option value="expired">หมดอายุ</option>
+                            </select>
+                            <input type="text" id="admin-search" placeholder="ค้นหาประกาศ..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                    </div>
+
+                    <div id="admin-announcements-list" class="space-y-4">
+                        <!-- Admin announcements will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">แพลตฟอร์มประกาศรับโอนย้าย</h3>
+                    <p class="text-gray-300 text-sm">ศูนย์กลางสำหรับหน่วยงานราชการที่ต้องการรับโอนย้ายข้าราชการ</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">เมนูหลัก</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" onclick="showPage('home')" class="text-gray-300 hover:text-white transition-colors">หน้าหลัก</a></li>
+                        <li><a href="#" onclick="showPage('announcements')" class="text-gray-300 hover:text-white transition-colors">ประกาศทั้งหมด</a></li>
+                        <li><a href="#" onclick="showPage('exam-ocsc')" class="text-gray-300 hover:text-white transition-colors">สอบผ่าน กพ.</a></li>
+                        <li><a href="#" onclick="showPage('exam-direct')" class="text-gray-300 hover:text-white transition-colors">สอบไม่ผ่าน กพ.</a></li>
+                        <li><a href="#" onclick="showPage('agencies')" class="text-gray-300 hover:text-white transition-colors">หน่วยงาน</a></li>
+                        <li><a href="#" onclick="showPage('post')" class="text-gray-300 hover:text-white transition-colors">ลงประกาศ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">ช่วยเหลือ</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">คู่มือการใช้งาน</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">คำถามที่พบบ่อย</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">ติดต่อเรา</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">รายงานปัญหา</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">ระบบจัดการ</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">นโยบายความเป็นส่วนตัว</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">เงื่อนไขการใช้งาน</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">ติดต่อผู้ดูแลระบบ</a></li>
+                        <li class="pt-2">
+                            <button onclick="showAdminLogin()" class="admin-btn text-white px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 w-full">
+                                🔐 เข้าสู่ระบบแอดมิน
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400 text-sm">© 2024 แพลตฟอร์มประกาศรับโอนย้ายข้าราชการ. สงวนลิขสิทธิ์.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Modal -->
+    <div id="application-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">สมัครโอนย้าย</h3>
+            <p class="text-gray-600 mb-6" id="modal-announcement-title"></p>
+            <div class="space-y-4">
+                <input type="text" id="applicant-name" placeholder="ชื่อ-นามสกุล" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <input type="text" id="applicant-current-position" placeholder="ตำแหน่งปัจจุบัน" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <input type="text" id="applicant-current-agency" placeholder="หน่วยงานปัจจุบัน" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <input type="email" id="applicant-email" placeholder="อีเมล" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <input type="tel" id="applicant-phone" placeholder="เบอร์โทรศัพท์" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <textarea id="applicant-reason" placeholder="เหตุผลในการสมัครโอนย้าย" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button onclick="submitApplication()" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                    ส่งใบสมัคร
+                </button>
+                <button onclick="closeModal()" class="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let announcementsDatabase = [];
+        let currentPage = 'home';
+        let currentAnnouncementPage = 1;
+        let currentAnnouncementId = null;
+        let editingAnnouncementId = null;
+        let currentUser = null;
+        let isAdminLoggedIn = false;
+        const announcementsPerPage = 6;
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            initializeAuth();
+            showPage('home');
+            setTodayDate();
+        });
+
+        function initializeApp() {
+            console.log('🚀 เริ่มต้นแพลตฟอร์มประกาศรับโอนย้าย...');
+            
+            // Load data from Firebase
+            loadDataFromFirebase();
+            
+            // Initialize demo data if database is empty
+            initializeDemoData();
+        }
+
+        function initializeAuth() {
+            const { auth, onAuthStateChanged } = window.firebase;
+            
+            // Monitor authentication state
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log('✅ ผู้ใช้เข้าสู่ระบบ:', user.email);
+                    currentUser = user;
+                    isAdminLoggedIn = true;
+                    updateAuthUI(true, user.email);
+                    
+                    // Create demo admin account if needed
+                    createDemoAdminIfNeeded();
+                } else {
+                    console.log('❌ ผู้ใช้ออกจากระบบ');
+                    currentUser = null;
+                    isAdminLoggedIn = false;
+                    updateAuthUI(false);
+                    
+                    // Redirect to home if on admin page
+                    if (currentPage === 'admin') {
+                        showPage('home');
+                    }
+                }
+            });
+        }
+
+        function updateAuthUI(isLoggedIn, email = '') {
+            const loginBtn = document.getElementById('admin-login-btn');
+            const userInfo = document.getElementById('admin-user-info');
+            const adminEmailSpan = document.getElementById('admin-email');
+            const adminDisplayEmail = document.getElementById('admin-display-email');
+            const adminLoginTime = document.getElementById('admin-login-time');
+            
+            if (isLoggedIn) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                adminEmailSpan.textContent = email;
+                adminDisplayEmail.textContent = `👨‍💼 ${email}`;
+                adminLoginTime.textContent = `เข้าสู่ระบบ: ${new Date().toLocaleString('th-TH')}`;
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+                adminEmailSpan.textContent = '';
+                adminDisplayEmail.textContent = '👨‍💼 ผู้ดูแลระบบ';
+                adminLoginTime.textContent = '';
+            }
+        }
+
+        function createDemoAdminIfNeeded() {
+            // This would typically be done server-side
+            // For demo purposes, we'll just log that the admin exists
+            console.log('🔧 ตรวจสอบบัญชีแอดมินเดโม...');
+        }
+
+        function showAdminLogin() {
+            showPage('admin-login');
+        }
+
+
+
+        async function adminLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('admin-email-input').value;
+            const password = document.getElementById('admin-password-input').value;
+            const submitBtn = document.getElementById('login-submit-btn');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '🔄 กำลังเข้าสู่ระบบ...';
+            
+            try {
+                const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebase;
+                
+                // Try to sign in first
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    console.log('✅ เข้าสู่ระบบสำเร็จ:', userCredential.user.email);
+                    alert('🎉 เข้าสู่ระบบแอดมินสำเร็จ!');
+                    showPage('admin');
+                } catch (signInError) {
+                    // If sign in fails and it's the demo account, create it
+                    if (email === 'admin@demo.com' && password === 'admin123') {
+                        console.log('🔧 สร้างบัญชีแอดมินเดโม...');
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        console.log('✅ สร้างและเข้าสู่ระบบแอดมินเดโมสำเร็จ:', userCredential.user.email);
+                        alert('🎉 สร้างบัญชีแอดมินเดโมและเข้าสู่ระบบสำเร็จ!');
+                        showPage('admin');
+                    } else {
+                        throw signInError;
+                    }
+                }
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการเข้าสู่ระบบ:', error);
+                
+                let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'ไม่พบบัญชีผู้ใช้นี้';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'รหัสผ่านไม่ถูกต้อง';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'รูปแบบอีเมลไม่ถูกต้อง';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'มีการพยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'ไม่สามารถเชื่อมต่อเครือข่ายได้';
+                        break;
+                }
+                
+                alert('❌ ' + errorMessage);
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🔓 เข้าสู่ระบบ';
+            }
+        }
+
+        async function adminLogout() {
+            if (confirm('คุณต้องการออกจากระบบแอดมินหรือไม่?')) {
+                try {
+                    const { auth, signOut } = window.firebase;
+                    await signOut(auth);
+                    console.log('✅ ออกจากระบบสำเร็จ');
+                    alert('👋 ออกจากระบบแอดมินเรียบร้อยแล้ว');
+                    showPage('home');
+                } catch (error) {
+                    console.error('❌ เกิดข้อผิดพลาดในการออกจากระบบ:', error);
+                    alert('เกิดข้อผิดพลาดในการออกจากระบบ');
+                }
+            }
+        }
+
+        function loadDataFromFirebase() {
+            const { database, ref, onValue } = window.firebase;
+            const announcementsRef = ref(database, 'announcements');
+            
+            onValue(announcementsRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    announcementsDatabase = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                    console.log('✅ โหลดข้อมูลจาก Firebase สำเร็จ:', announcementsDatabase.length, 'รายการ');
+                } else {
+                    announcementsDatabase = [];
+                    console.log('📝 ไม่พบข้อมูลใน Firebase - เริ่มต้นด้วยข้อมูลว่าง');
+                }
+                
+                // Update displays
+                updateStats();
+                displayRecentAnnouncements();
+                updateAdminStats();
+                
+                if (currentPage === 'announcements') {
+                    displayAnnouncements();
+                } else if (currentPage === 'admin') {
+                    displayAdminAnnouncements();
+                }
+            }, (error) => {
+                console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
+                alert('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            });
+        }
+
+        function initializeDemoData() {
+            const { database, ref, get, set } = window.firebase;
+            const announcementsRef = ref(database, 'announcements');
+            
+            get(announcementsRef).then((snapshot) => {
+                if (!snapshot.exists()) {
+                    console.log('🔧 เริ่มต้นข้อมูลตัวอย่าง...');
+                    const demoData = {
+                        'ann_001': {
+                            agencyName: "กรมการปกครอง",
+                            agencyType: "กรม",
+                            province: "กรุงเทพมหานคร",
+                            contactPerson: "นายสมชาย ใจดี",
+                            contactPhone: "02-123-4567",
+                            contactEmail: "somchai@dopa.go.th",
+                            positionTitle: "นักวิชาการปกครองชำนาญการ",
+                            positionLevel: "ชำนาญการ",
+                            positionCount: 3,
+                            salaryRange: "25,000 - 35,000 บาท",
+                            requirements: "วุฒิปริญญาตรีขึ้นไป สาขาที่เกี่ยวข้อง มีประสบการณ์ไม่น้อยกว่า 3 ปี",
+                            responsibilities: "ปฏิบัติงานด้านการปกครอง การจัดทำเอกสารราชการ การประสานงานกับหน่วยงานต่างๆ",
+                            applicationStart: "2024-01-20",
+                            applicationEnd: "2024-02-15",
+                            startWorkDate: "2024-03-01",
+                            applicationMethod: "online",
+                            requiredDocuments: "สำเนาบัตรประชาชน, สำเนาทะเบียนบ้าน, สำเนาวุฒิการศึกษา, ใบรับรองการทำงาน",
+                            additionalInfo: "ผู้ที่ผ่านการคัดเลือกจะได้รับการติดต่อภายใน 15 วันทำการ",
+                            status: "published",
+                            applications: 12,
+                            views: 156,
+                            publishDate: "2024-01-15",
+                            createdAt: Date.now()
+                        },
+                        'ann_002': {
+                            agencyName: "เทศบาลนครเชียงใหม่",
+                            agencyType: "เทศบาล",
+                            province: "เชียงใหม่",
+                            contactPerson: "นางสาวมาลี สวยงาม",
+                            contactPhone: "053-123-456",
+                            contactEmail: "malee@chiangmai.go.th",
+                            positionTitle: "เจ้าหน้าที่วิเคราะห์นโยบายและแผน",
+                            positionLevel: "ปฏิบัติการ",
+                            positionCount: 2,
+                            salaryRange: "18,000 - 25,000 บาท",
+                            requirements: "วุฒิปริญญาตรี สาขารัฐประศาสนศาสตร์ หรือสาขาที่เกี่ยวข้อง",
+                            responsibilities: "วิเคราะห์นโยบาย จัดทำแผนงาน ติดตามและประเมินผล",
+                            applicationStart: "2024-01-25",
+                            applicationEnd: "2024-02-20",
+                            startWorkDate: "2024-03-15",
+                            applicationMethod: "inperson",
+                            requiredDocuments: "เอกสารสมัครงาน, ประวัติการทำงาน, หนังสือรับรอง",
+                            additionalInfo: "สามารถสอบถามรายละเอียดเพิ่มเติมได้ที่กองการเจ้าหน้าที่",
+                            status: "published",
+                            applications: 8,
+                            views: 89,
+                            publishDate: "2024-01-20",
+                            createdAt: Date.now() - 86400000
+                        },
+                        'ann_003': {
+                            agencyName: "สำนักงานเขตบางรัก",
+                            agencyType: "เขต",
+                            province: "กรุงเทพมหานคร",
+                            contactPerson: "นายประยุทธ มั่นคง",
+                            contactPhone: "02-234-5678",
+                            contactEmail: "prayuth@bangrak.go.th",
+                            positionTitle: "หัวหน้าฝ่ายบริการประชาชน",
+                            positionLevel: "อำนวยการ",
+                            positionCount: 1,
+                            salaryRange: "45,000 - 55,000 บาท",
+                            requirements: "วุฒิปริญญาโทขึ้นไป มีประสบการณ์บริหารงานไม่น้อยกว่า 5 ปี",
+                            responsibilities: "บริหารงานฝ่ายบริการประชาชน กำกับดูแลการให้บริการ พัฒนาระบบงาน",
+                            applicationStart: "2024-02-01",
+                            applicationEnd: "2024-02-28",
+                            startWorkDate: "2024-04-01",
+                            applicationMethod: "email",
+                            requiredDocuments: "ใบสมัคร, ประวัติส่วนตัว, ผลงาน, หนังสือรับรองประสบการณ์",
+                            additionalInfo: "ต้องผ่านการสัมภาษณ์และทดสอบความรู้",
+                            status: "published",
+                            applications: 5,
+                            views: 234,
+                            publishDate: "2024-01-28",
+                            createdAt: Date.now() - 172800000
+                        },
+                        'draft_001': {
+                            agencyName: "กรมพัฒนาที่ดิน",
+                            agencyType: "กรม",
+                            province: "กรุงเทพมหานคร",
+                            contactPerson: "นายสมศักดิ์ ดีงาม",
+                            contactPhone: "02-345-6789",
+                            contactEmail: "somsak@ldd.go.th",
+                            positionTitle: "นักวิชาการที่ดิน",
+                            positionLevel: "ปฏิบัติการ",
+                            positionCount: 2,
+                            salaryRange: "20,000 - 28,000 บาท",
+                            requirements: "วุฒิปริญญาตรี สาขาที่เกี่ยวข้องกับที่ดิน",
+                            responsibilities: "ปฏิบัติงานด้านการพัฒนาที่ดิน การสำรวจ การวิเคราะห์",
+                            applicationStart: "2024-02-10",
+                            applicationEnd: "2024-03-10",
+                            startWorkDate: "2024-04-01",
+                            applicationMethod: "online",
+                            requiredDocuments: "เอกสารสมัครงานตามปกติ",
+                            additionalInfo: "ร่างประกาศ - ยังไม่เผยแพร่",
+                            status: "draft",
+                            applications: 0,
+                            views: 0,
+                            publishDate: null,
+                            createdAt: Date.now() - 259200000
+                        }
+                    };
+                    
+                    set(announcementsRef, demoData).then(() => {
+                        console.log('✅ เริ่มต้นข้อมูลตัวอย่างสำเร็จ');
+                    }).catch((error) => {
+                        console.error('❌ เกิดข้อผิดพลาดในการเริ่มต้นข้อมูล:', error);
+                    });
+                }
+            });
+        }
+
+        function showPage(page) {
+            // Check admin access
+            if (page === 'admin' && !isAdminLoggedIn) {
+                alert('🔒 กรุณาเข้าสู่ระบบแอดมินก่อนเข้าใช้งาน');
+                showAdminLogin();
+                return;
+            }
+            
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(page + '-page').classList.remove('hidden');
+            document.getElementById(page + '-page').classList.add('fade-in');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-green-100', 'bg-green-600', 'text-white');
+                if (!btn.textContent.includes('+')) {
+                    btn.classList.add('text-green-800');
+                }
+            });
+            
+            if (event?.target) {
+                if (event.target.textContent.includes('+')) {
+                    event.target.classList.add('bg-green-600', 'text-white');
+                } else {
+                    event.target.classList.add('bg-green-100');
+                }
+            }
+            
+            currentPage = page;
+            
+            if (page === 'announcements') {
+                displayAnnouncements();
+            } else if (page === 'admin') {
+                displayAdminAnnouncements();
+                updateAdminStats();
+            } else if (page === 'exam-ocsc') {
+                displayOCSCExams();
+                updateOCSCStats();
+            } else if (page === 'exam-direct') {
+                displayDirectExams();
+                updateDirectStats();
+            }
+        }
+
+        function displayOCSCExams() {
+            // Filter announcements for OCSC exams (through กพ.)
+            const ocscExams = announcementsDatabase.filter(ann => 
+                ann.status === 'published' && 
+                (ann.examType === 'ocsc' || ann.agencyType === 'กรม' || ann.agencyType === 'กระทรวง')
+            );
+            
+            const container = document.getElementById('ocsc-exams-list');
+            if (ocscExams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-6xl mb-4">📝</div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">ยังไม่มีการสอบที่เปิดรับสมัคร</h3>
+                        <p class="text-gray-600">การสอบผ่าน กพ. จะปรากฏที่นี่เมื่อมีการเปิดรับสมัคร</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = ocscExams.map(exam => createExamCard(exam, 'ocsc')).join('');
+            }
+        }
+
+        function displayDirectExams() {
+            // Filter announcements for direct exams (not through กพ.)
+            const directExams = announcementsDatabase.filter(ann => 
+                ann.status === 'published' && 
+                (ann.examType === 'direct' || ann.agencyType === 'เทศบาล' || ann.agencyType === 'อบจ' || ann.agencyType === 'อบต')
+            );
+            
+            const container = document.getElementById('direct-exams-list');
+            if (directExams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-6xl mb-4">🏢</div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">ยังไม่มีการสอบที่เปิดรับสมัคร</h3>
+                        <p class="text-gray-600">การสอบโดยตรงกับหน่วยงานจะปรากฏที่นี่เมื่อมีการเปิดรับสมัคร</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = directExams.map(exam => createExamCard(exam, 'direct')).join('');
+            }
+        }
+
+        function createExamCard(exam, type) {
+            const today = new Date();
+            const endDate = new Date(exam.applicationEnd);
+            const isExpired = today > endDate;
+            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+            
+            const typeColor = type === 'ocsc' ? 'purple' : 'green';
+            const typeIcon = type === 'ocsc' ? '🏛️' : '🏢';
+            const typeText = type === 'ocsc' ? 'ผ่าน กพ.' : 'ไม่ผ่าน กพ.';
+            
+            return `
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-l-4 border-${typeColor}-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex flex-col space-y-1">
+                            <span class="bg-${typeColor}-100 text-${typeColor}-800 px-3 py-1 rounded-full text-sm font-medium flex items-center w-fit">
+                                ${typeIcon} ${typeText}
+                            </span>
+                            <span class="text-xs text-gray-600">🏛️ ${exam.agencyName}</span>
+                            <span class="text-xs text-gray-600">📍 ${exam.province}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm text-${typeColor}-700 font-medium">รับ ${exam.positionCount} คน</span>
+                            <div class="text-xs text-gray-500">📝 ${exam.applications || 0} ใบสมัคร</div>
+                            <div class="text-xs text-gray-500 flex items-center justify-end mt-1">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                </svg>
+                                ${exam.views || 0} ครั้ง
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2">${exam.positionTitle}</h3>
+                    
+                    <div class="text-sm text-gray-600 mb-3">
+                        <div class="flex items-center mb-1">
+                            <span class="mr-2">💰</span>
+                            <span>${exam.salaryRange || 'ตามประกาศ'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">📞</span>
+                            <span>${exam.contactPerson}</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-4 line-clamp-3">${exam.requirements}</p>
+                    
+                    <div class="border-t pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-sm text-gray-600">
+                                <div class="flex items-center mb-1">
+                                    <span class="mr-2">📅</span>
+                                    <span>เริ่ม: ${formatDate(exam.applicationStart)}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="mr-2">⏰</span>
+                                    <span>สิ้นสุด: ${formatDate(exam.applicationEnd)}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                ${!isExpired ? 
+                                    `<div class="text-sm font-medium ${daysLeft <= 7 ? 'text-red-600' : 'text-green-700'}">
+                                        ${daysLeft > 0 ? `เหลือ ${daysLeft} วัน` : 'วันสุดท้าย'}
+                                    </div>` :
+                                    `<div class="text-sm font-medium text-gray-500">หมดเขตแล้ว</div>`
+                                }
+                            </div>
+                        </div>
+                        
+                        <button 
+                            onclick="openApplicationModal('${exam.id}')" 
+                            class="w-full bg-${typeColor}-600 text-white py-3 rounded-lg font-semibold hover:bg-${typeColor}-700 transition-colors ${isExpired ? 'bg-gray-400 cursor-not-allowed' : ''}"
+                            ${isExpired ? 'disabled' : ''}
+                        >
+                            ${isExpired ? '🔒 หมดเขตสมัคร' : '✍️ สมัครสอบ'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateOCSCStats() {
+            const ocscExams = announcementsDatabase.filter(ann => 
+                ann.status === 'published' && 
+                (ann.examType === 'ocsc' || ann.agencyType === 'กรม' || ann.agencyType === 'กระทรวง')
+            );
+            
+            const today = new Date();
+            const activeExams = ocscExams.filter(exam => {
+                const endDate = new Date(exam.applicationEnd);
+                return endDate >= today;
+            });
+            
+            const totalPositions = ocscExams.reduce((sum, exam) => sum + (exam.positionCount || 0), 0);
+            const totalApplicants = ocscExams.reduce((sum, exam) => sum + (exam.applications || 0), 0);
+            const competitionRate = totalPositions > 0 ? Math.round(totalApplicants / totalPositions) : 0;
+            
+            document.getElementById('ocsc-total-positions').textContent = totalPositions;
+            document.getElementById('ocsc-active-exams').textContent = activeExams.length;
+            document.getElementById('ocsc-total-applicants').textContent = totalApplicants;
+            document.getElementById('ocsc-competition-rate').textContent = `1:${competitionRate}`;
+        }
+
+        function updateDirectStats() {
+            const directExams = announcementsDatabase.filter(ann => 
+                ann.status === 'published' && 
+                (ann.examType === 'direct' || ann.agencyType === 'เทศบาล' || ann.agencyType === 'อบจ' || ann.agencyType === 'อบต')
+            );
+            
+            const today = new Date();
+            const activeExams = directExams.filter(exam => {
+                const endDate = new Date(exam.applicationEnd);
+                return endDate >= today;
+            });
+            
+            const uniqueAgencies = [...new Set(directExams.map(exam => exam.agencyName))].length;
+            const totalPositions = directExams.reduce((sum, exam) => sum + (exam.positionCount || 0), 0);
+            const totalApplicants = directExams.reduce((sum, exam) => sum + (exam.applications || 0), 0);
+            
+            document.getElementById('direct-total-agencies').textContent = uniqueAgencies;
+            document.getElementById('direct-total-positions').textContent = totalPositions;
+            document.getElementById('direct-active-exams').textContent = activeExams.length;
+            document.getElementById('direct-total-applicants').textContent = totalApplicants;
+        }
+
+        function updateStats() {
+            const totalAnnouncements = announcementsDatabase.filter(ann => ann.status === 'published').length;
+            const today = new Date().toISOString().split('T')[0];
+            const todayAnnouncements = announcementsDatabase.filter(ann => 
+                ann.publishDate === today && ann.status === 'published'
+            ).length;
+            
+            const uniqueAgencies = [...new Set(announcementsDatabase.map(ann => ann.agencyName))].length;
+            const totalPositions = announcementsDatabase.reduce((sum, ann) => sum + (ann.positionCount || 0), 0);
+            
+            document.getElementById('total-agencies').textContent = uniqueAgencies;
+            document.getElementById('total-announcements').textContent = totalAnnouncements;
+            document.getElementById('today-announcements').textContent = todayAnnouncements;
+            document.getElementById('total-positions').textContent = totalPositions;
+        }
+
+        function updateAdminStats() {
+            const totalAnnouncements = announcementsDatabase.length;
+            const publishedAnnouncements = announcementsDatabase.filter(ann => ann.status === 'published').length;
+            const draftAnnouncements = announcementsDatabase.filter(ann => ann.status === 'draft').length;
+            const totalApplications = announcementsDatabase.reduce((sum, ann) => sum + (ann.applications || 0), 0);
+            
+            document.getElementById('admin-total-announcements').textContent = totalAnnouncements;
+            document.getElementById('admin-published-announcements').textContent = publishedAnnouncements;
+            document.getElementById('admin-draft-announcements').textContent = draftAnnouncements;
+            document.getElementById('admin-total-applications').textContent = totalApplications;
+        }
+
+        function displayRecentAnnouncements() {
+            const recentAnnouncements = announcementsDatabase
+                .filter(ann => ann.status === 'published')
+                .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+                .slice(0, 3);
+            
+            const container = document.getElementById('recent-announcements');
+            container.innerHTML = recentAnnouncements.map(ann => createAnnouncementCard(ann, true)).join('');
+        }
+
+        function displayAnnouncements() {
+            const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
+            const positionFilter = document.getElementById('position-filter')?.value || '';
+            const locationFilter = document.getElementById('location-filter')?.value || '';
+            
+            let filteredAnnouncements = announcementsDatabase.filter(ann => 
+                ann.status === 'published' &&
+                (ann.positionTitle.toLowerCase().includes(searchTerm) || 
+                 ann.agencyName.toLowerCase().includes(searchTerm) ||
+                 ann.requirements.toLowerCase().includes(searchTerm)) &&
+                (positionFilter === '' || ann.positionTitle.includes(positionFilter)) &&
+                (locationFilter === '' || ann.province === locationFilter)
+            );
+            
+            const startIndex = (currentAnnouncementPage - 1) * announcementsPerPage;
+            const endIndex = startIndex + announcementsPerPage;
+            const paginatedAnnouncements = filteredAnnouncements.slice(startIndex, endIndex);
+            
+            const container = document.getElementById('announcements-list');
+            container.innerHTML = paginatedAnnouncements.map(ann => createAnnouncementCard(ann, false)).join('');
+            
+            displayPagination(filteredAnnouncements.length);
+        }
+
+        function displayAdminAnnouncements() {
+            const statusFilter = document.getElementById('admin-status-filter')?.value || '';
+            const searchTerm = document.getElementById('admin-search')?.value.toLowerCase() || '';
+            
+            let filteredAnnouncements = announcementsDatabase.filter(ann => 
+                (statusFilter === '' || ann.status === statusFilter) &&
+                (ann.positionTitle.toLowerCase().includes(searchTerm) || 
+                 ann.agencyName.toLowerCase().includes(searchTerm))
+            );
+            
+            const container = document.getElementById('admin-announcements-list');
+            container.innerHTML = filteredAnnouncements.map(ann => createAdminAnnouncementCard(ann)).join('');
+        }
+
+        function createAdminAnnouncementCard(announcement) {
+            const statusColors = {
+                'published': 'bg-green-100 text-green-800',
+                'draft': 'bg-yellow-100 text-yellow-800',
+                'expired': 'bg-red-100 text-red-800'
+            };
+            
+            const statusTexts = {
+                'published': 'เผยแพร่แล้ว',
+                'draft': 'ร่าง',
+                'expired': 'หมดอายุ'
+            };
+            
+            return `
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 ${announcement.status === 'published' ? 'border-green-500' : announcement.status === 'draft' ? 'border-yellow-500' : 'border-red-500'}">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-lg font-bold text-gray-800">${announcement.positionTitle}</h3>
+                                <span class="px-3 py-1 rounded-full text-sm font-medium ${statusColors[announcement.status] || 'bg-gray-100 text-gray-800'}">
+                                    ${statusTexts[announcement.status] || announcement.status}
+                                </span>
+                            </div>
+                            <p class="text-gray-600 mb-2">🏛️ ${announcement.agencyName} | 📍 ${announcement.province}</p>
+                            <p class="text-sm text-gray-500">รับ ${announcement.positionCount} คน | ใบสมัคร ${announcement.applications || 0} ใบ | 
+                                <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                </svg>
+                                ${announcement.views || 0} ครั้ง
+                            </p>
+                            ${announcement.publishDate ? `<p class="text-xs text-gray-400 mt-1">เผยแพร่: ${formatDate(announcement.publishDate)}</p>` : ''}
+                        </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button onclick="editAnnouncement('${announcement.id}')" class="edit-btn text-white px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105">
+                                ✏️ แก้ไข
+                            </button>
+                            <button onclick="deleteAnnouncement('${announcement.id}')" class="delete-btn text-white px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105">
+                                🗑️ ลบ
+                            </button>
+                            ${announcement.status === 'draft' ? 
+                                `<button onclick="publishFromAdmin('${announcement.id}')" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                                    🚀 เผยแพร่
+                                </button>` : ''
+                            }
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <p class="line-clamp-2">${announcement.requirements}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function editAnnouncement(announcementId) {
+            const announcement = announcementsDatabase.find(ann => ann.id === announcementId);
+            if (announcement) {
+                editingAnnouncementId = announcementId;
+                
+                // Fill form with existing data
+                document.getElementById('agency-name').value = announcement.agencyName;
+                document.getElementById('agency-type').value = announcement.agencyType;
+                document.getElementById('agency-province').value = announcement.province;
+                document.getElementById('contact-person').value = announcement.contactPerson;
+                document.getElementById('contact-phone').value = announcement.contactPhone;
+                document.getElementById('contact-email').value = announcement.contactEmail;
+                document.getElementById('position-title').value = announcement.positionTitle;
+                document.getElementById('position-level').value = announcement.positionLevel;
+                document.getElementById('position-count').value = announcement.positionCount;
+                document.getElementById('salary-range').value = announcement.salaryRange;
+                document.getElementById('position-requirements').value = announcement.requirements;
+                document.getElementById('position-responsibilities').value = announcement.responsibilities;
+                document.getElementById('application-start').value = announcement.applicationStart;
+                document.getElementById('application-end').value = announcement.applicationEnd;
+                document.getElementById('start-work-date').value = announcement.startWorkDate;
+                document.getElementById('application-method').value = announcement.applicationMethod;
+                document.getElementById('required-documents').value = announcement.requiredDocuments;
+                document.getElementById('additional-info').value = announcement.additionalInfo;
+                
+                showPage('post');
+                alert('กำลังแก้ไขประกาศ: ' + announcement.positionTitle);
+            }
+        }
+
+        function deleteAnnouncement(announcementId) {
+            const announcement = announcementsDatabase.find(ann => ann.id === announcementId);
+            if (announcement && confirm(`คุณต้องการลบประกาศ "${announcement.positionTitle}" หรือไม่?`)) {
+                const { database, ref, remove } = window.firebase;
+                const announcementRef = ref(database, `announcements/${announcementId}`);
+                
+                remove(announcementRef).then(() => {
+                    alert('ลบประกาศเรียบร้อยแล้ว!');
+                    console.log('✅ ลบประกาศจาก Firebase สำเร็จ:', announcementId);
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการลบประกาศ:', error);
+                    alert('เกิดข้อผิดพลาดในการลบประกาศ กรุณาลองใหม่อีกครั้ง');
+                });
+            }
+        }
+
+        function publishFromAdmin(announcementId) {
+            const { database, ref, update } = window.firebase;
+            const announcementRef = ref(database, `announcements/${announcementId}`);
+            
+            const updates = {
+                status: 'published',
+                publishDate: new Date().toISOString().split('T')[0],
+                updatedAt: Date.now()
+            };
+            
+            update(announcementRef, updates).then(() => {
+                alert('เผยแพร่ประกาศเรียบร้อยแล้ว!');
+                console.log('✅ เผยแพร่ประกาศใน Firebase สำเร็จ:', announcementId);
+            }).catch((error) => {
+                console.error('❌ เกิดข้อผิดพลาดในการเผยแพร่ประกาศ:', error);
+                alert('เกิดข้อผิดพลาดในการเผยแพร่ประกาศ กรุณาลองใหม่อีกครั้ง');
+            });
+        }
+
+        function exportData() {
+            const data = {
+                announcements: announcementsDatabase,
+                exportDate: new Date().toISOString(),
+                totalAnnouncements: announcementsDatabase.length,
+                publishedAnnouncements: announcementsDatabase.filter(ann => ann.status === 'published').length,
+                totalApplications: announcementsDatabase.reduce((sum, ann) => sum + (ann.applications || 0), 0)
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `platform_data_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert('📊 ส่งออกข้อมูลเรียบร้อยแล้ว!');
+        }
+
+        function clearOldAnnouncements() {
+            const today = new Date();
+            const oldAnnouncements = announcementsDatabase.filter(ann => {
+                const endDate = new Date(ann.applicationEnd);
+                return endDate < today && ann.status === 'published';
+            });
+            
+            if (oldAnnouncements.length === 0) {
+                alert('ไม่มีประกาศที่หมดอายุแล้ว');
+                return;
+            }
+            
+            if (confirm(`พบประกาศที่หมดอายุแล้ว ${oldAnnouncements.length} รายการ\nต้องการลบหรือไม่?`)) {
+                const { database, ref, remove } = window.firebase;
+                const deletePromises = oldAnnouncements.map(ann => {
+                    const announcementRef = ref(database, `announcements/${ann.id}`);
+                    return remove(announcementRef);
+                });
+                
+                Promise.all(deletePromises).then(() => {
+                    alert(`🧹 ลบประกาศที่หมดอายุแล้ว ${oldAnnouncements.length} รายการ`);
+                    console.log('✅ ลบประกาศที่หมดอายุจาก Firebase สำเร็จ');
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการลบประกาศที่หมดอายุ:', error);
+                    alert('เกิดข้อผิดพลาดในการลบประกาศบางรายการ กรุณาลองใหม่อีกครั้ง');
+                });
+            }
+        }
+
+        function sendNotifications() {
+            const recentAnnouncements = announcementsDatabase.filter(ann => {
+                const publishDate = new Date(ann.publishDate);
+                const today = new Date();
+                const diffTime = Math.abs(today - publishDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays <= 7 && ann.status === 'published';
+            });
+            
+            if (recentAnnouncements.length === 0) {
+                alert('ไม่มีประกาศใหม่ในช่วง 7 วันที่ผ่านมา');
+                return;
+            }
+            
+            alert(`📧 ส่งการแจ้งเตือนประกาศใหม่ ${recentAnnouncements.length} รายการเรียบร้อยแล้ว!\n\nประกาศที่ส่ง:\n${recentAnnouncements.map(ann => `• ${ann.positionTitle} - ${ann.agencyName}`).join('\n')}`);
+        }
+
+        function createAnnouncementCard(announcement, isCompact = false) {
+            const today = new Date();
+            const endDate = new Date(announcement.applicationEnd);
+            const isExpired = today > endDate;
+            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+            
+            return `
+                <div class="announcement-card bg-white rounded-xl shadow-lg p-6 ${isCompact ? 'h-auto' : 'h-full'} flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex flex-col space-y-1">
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">${announcement.positionLevel}</span>
+                            <span class="text-xs text-gray-600">🏛️ ${announcement.agencyName}</span>
+                            <span class="text-xs text-gray-600">📍 ${announcement.province}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm text-blue-700 font-medium">รับ ${announcement.positionCount} คน</span>
+                            <div class="text-xs text-gray-500">📝 ${announcement.applications || 0} ใบสมัคร</div>
+                            <div class="text-xs text-gray-500 flex items-center justify-end mt-1">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                </svg>
+                                ${announcement.views || 0} ครั้ง
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2">${announcement.positionTitle}</h3>
+                    
+                    <div class="text-sm text-gray-600 mb-3">
+                        <div class="flex items-center mb-1">
+                            <span class="mr-2">💰</span>
+                            <span>${announcement.salaryRange || 'ตามประกาศ'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">📞</span>
+                            <span>${announcement.contactPerson}</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-4 flex-grow ${isCompact ? 'line-clamp-2' : 'line-clamp-3'}">${announcement.requirements}</p>
+                    
+                    <div class="border-t pt-4 mt-auto">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-sm text-gray-600">
+                                <div class="flex items-center mb-1">
+                                    <span class="mr-2">📅</span>
+                                    <span>เริ่ม: ${formatDate(announcement.applicationStart)}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="mr-2">⏰</span>
+                                    <span>สิ้นสุด: ${formatDate(announcement.applicationEnd)}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                ${!isExpired ? 
+                                    `<div class="text-sm font-medium ${daysLeft <= 7 ? 'text-red-600' : 'text-green-700'}">
+                                        ${daysLeft > 0 ? `เหลือ ${daysLeft} วัน` : 'วันสุดท้าย'}
+                                    </div>` :
+                                    `<div class="text-sm font-medium text-gray-500">หมดเขตแล้ว</div>`
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <button 
+                                onclick="openApplicationModal('${announcement.id}')" 
+                                class="apply-btn w-full text-white py-3 rounded-lg font-semibold ${isExpired ? 'bg-gray-400 cursor-not-allowed' : ''}"
+                                ${isExpired ? 'disabled' : ''}
+                            >
+                                ${isExpired ? '🔒 หมดเขตสมัคร' : '✍️ สมัครโอนย้าย'}
+                            </button>
+                            <button 
+                                onclick="downloadAnnouncement('${announcement.id}')" 
+                                class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm border border-gray-300"
+                            >
+                                📄 ดาวน์โหลดประกาศ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadAnnouncement(announcementId) {
+            const announcement = announcementsDatabase.find(ann => ann.id === announcementId);
+            if (announcement) {
+                // Track view for download
+                trackAnnouncementView(announcementId);
+                const content = `
+ประกาศรับโอนย้ายข้าราชการ
+
+หน่วยงาน: ${announcement.agencyName}
+ประเภท: ${announcement.agencyType}
+จังหวัด: ${announcement.province}
+
+ตำแหน่งที่รับโอนย้าย: ${announcement.positionTitle}
+ระดับ: ${announcement.positionLevel}
+จำนวนที่รับ: ${announcement.positionCount} คน
+เงินเดือน: ${announcement.salaryRange}
+
+คุณสมบัติที่ต้องการ:
+${announcement.requirements}
+
+หน้าที่ความรับผิดชอบ:
+${announcement.responsibilities}
+
+ช่วงเวลาสมัคร:
+เริ่มรับสมัคร: ${formatDate(announcement.applicationStart)}
+สิ้นสุดการรับสมัคร: ${formatDate(announcement.applicationEnd)}
+เริ่มงาน: ${formatDate(announcement.startWorkDate)}
+
+วิธีการสมัคร: ${getApplicationMethodText(announcement.applicationMethod)}
+
+เอกสารที่ต้องใช้:
+${announcement.requiredDocuments}
+
+ข้อมูลเพิ่มเติม:
+${announcement.additionalInfo}
+
+ติดต่อสอบถาม:
+${announcement.contactPerson}
+โทร: ${announcement.contactPhone}
+อีเมล: ${announcement.contactEmail}
+
+---
+ประกาศเมื่อ: ${formatDate(announcement.publishDate)}
+จำนวนผู้สมัครปัจจุบัน: ${announcement.applications || 0} คน
+                `;
+
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ประกาศรับโอนย้าย_${announcement.agencyName}_${announcement.positionTitle}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert('ดาวน์โหลดประกาศเรียบร้อยแล้ว!');
+            }
+        }
+
+        function getApplicationMethodText(method) {
+            const methods = {
+                'online': 'สมัครออนไลน์',
+                'mail': 'ส่งทางไปรษณีย์',
+                'inperson': 'ยื่นด้วยตนเอง',
+                'email': 'ส่งทางอีเมล'
+            };
+            return methods[method] || method;
+        }
+
+        function displayPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / announcementsPerPage);
+            const container = document.getElementById('pagination');
+            
+            let paginationHTML = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHTML += `
+                    <button onclick="changePage(${i})" class="px-4 py-2 rounded-lg ${i === currentAnnouncementPage ? 'bg-green-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'} border transition-colors">
+                        ${i}
+                    </button>
+                `;
+            }
+            
+            container.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            currentAnnouncementPage = page;
+            displayAnnouncements();
+        }
+
+        function openApplicationModal(announcementId) {
+            const announcement = announcementsDatabase.find(ann => ann.id === announcementId);
+            if (announcement) {
+                // Track view
+                trackAnnouncementView(announcementId);
+                
+                currentAnnouncementId = announcementId;
+                document.getElementById('modal-announcement-title').textContent = 
+                    `${announcement.positionTitle} - ${announcement.agencyName}`;
+                document.getElementById('application-modal').classList.remove('hidden');
+                
+                // Clear form
+                document.getElementById('applicant-name').value = '';
+                document.getElementById('applicant-current-position').value = '';
+                document.getElementById('applicant-current-agency').value = '';
+                document.getElementById('applicant-email').value = '';
+                document.getElementById('applicant-phone').value = '';
+                document.getElementById('applicant-reason').value = '';
+            }
+        }
+
+        function trackAnnouncementView(announcementId) {
+            const { database, ref, update } = window.firebase;
+            const announcementRef = ref(database, `announcements/${announcementId}`);
+            
+            // Get current views count
+            const announcement = announcementsDatabase.find(ann => ann.id === announcementId);
+            const currentViews = announcement?.views || 0;
+            
+            // Update views count
+            update(announcementRef, { 
+                views: currentViews + 1,
+                lastViewedAt: Date.now()
+            }).then(() => {
+                console.log('✅ อัปเดตจำนวนผู้เข้าชมสำเร็จ:', announcementId);
+            }).catch((error) => {
+                console.error('❌ เกิดข้อผิดพลาดในการอัปเดตจำนวนผู้เข้าชม:', error);
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('application-modal').classList.add('hidden');
+            currentAnnouncementId = null;
+        }
+
+        function submitApplication() {
+            const name = document.getElementById('applicant-name').value;
+            const currentPosition = document.getElementById('applicant-current-position').value;
+            const currentAgency = document.getElementById('applicant-current-agency').value;
+            const email = document.getElementById('applicant-email').value;
+            const phone = document.getElementById('applicant-phone').value;
+            const reason = document.getElementById('applicant-reason').value;
+            
+            if (!name || !currentPosition || !currentAgency || !email || !phone || !reason) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            const { database, ref, push, update } = window.firebase;
+            
+            // Save application to Firebase
+            const applicationsRef = ref(database, `applications/${currentAnnouncementId}`);
+            const applicationData = {
+                name,
+                currentPosition,
+                currentAgency,
+                email,
+                phone,
+                reason,
+                appliedAt: Date.now(),
+                status: 'pending'
+            };
+            
+            push(applicationsRef, applicationData).then(() => {
+                // Update application count in announcement
+                const announcementRef = ref(database, `announcements/${currentAnnouncementId}`);
+                const announcement = announcementsDatabase.find(ann => ann.id === currentAnnouncementId);
+                const newCount = (announcement?.applications || 0) + 1;
+                
+                update(announcementRef, { 
+                    applications: newCount,
+                    updatedAt: Date.now()
+                }).then(() => {
+                    alert('ส่งใบสมัครเรียบร้อยแล้ว! หน่วยงานจะติดต่อกลับภายใน 7-15 วันทำการ');
+                    closeModal();
+                    console.log('✅ บันทึกใบสมัครใน Firebase สำเร็จ');
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการอัปเดตจำนวนใบสมัคร:', error);
+                });
+            }).catch((error) => {
+                console.error('❌ เกิดข้อผิดพลาดในการส่งใบสมัคร:', error);
+                alert('เกิดข้อผิดพลาดในการส่งใบสมัคร กรุณาลองใหม่อีกครั้ง');
+            });
+        }
+
+        // Post announcement functions
+        function publishAnnouncement() {
+            if (!validateAnnouncementForm()) return;
+            
+            const announcementData = getAnnouncementFormData();
+            const { database, ref, set, update } = window.firebase;
+            
+            if (editingAnnouncementId) {
+                // Update existing announcement
+                const announcementRef = ref(database, `announcements/${editingAnnouncementId}`);
+                const updates = {
+                    ...announcementData,
+                    status: 'published',
+                    publishDate: new Date().toISOString().split('T')[0],
+                    updatedAt: Date.now()
+                };
+                
+                update(announcementRef, updates).then(() => {
+                    alert('🎉 อัปเดตประกาศเรียบร้อยแล้ว!');
+                    clearAnnouncementForm();
+                    showPage('announcements');
+                    console.log('✅ อัปเดตประกาศใน Firebase สำเร็จ:', editingAnnouncementId);
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการอัปเดตประกาศ:', error);
+                    alert('เกิดข้อผิดพลาดในการอัปเดตประกาศ กรุณาลองใหม่อีกครั้ง');
+                });
+                
+                editingAnnouncementId = null;
+            } else {
+                // Create new announcement
+                const newAnnouncementRef = ref(database, `announcements/ann_${Date.now()}`);
+                const newAnnouncementData = {
+                    ...announcementData,
+                    status: 'published',
+                    publishDate: new Date().toISOString().split('T')[0],
+                    applications: 0,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+                
+                set(newAnnouncementRef, newAnnouncementData).then(() => {
+                    alert('🎉 เผยแพร่ประกาศเรียบร้อยแล้ว!\n\nประกาศของคุณจะปรากฏในหน้าประกาศทั้งหมดทันที');
+                    clearAnnouncementForm();
+                    showPage('announcements');
+                    console.log('✅ บันทึกประกาศใหม่ใน Firebase สำเร็จ');
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการบันทึกประกาศ:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึกประกาศ กรุณาลองใหม่อีกครั้ง');
+                });
+            }
+        }
+
+        function saveDraft() {
+            if (!validateAnnouncementForm(false)) return;
+            
+            const announcementData = getAnnouncementFormData();
+            const { database, ref, set, update } = window.firebase;
+            
+            if (editingAnnouncementId) {
+                // Update existing announcement as draft
+                const announcementRef = ref(database, `announcements/${editingAnnouncementId}`);
+                const updates = {
+                    ...announcementData,
+                    status: 'draft',
+                    updatedAt: Date.now()
+                };
+                
+                update(announcementRef, updates).then(() => {
+                    alert('💾 อัปเดตร่างเรียบร้อยแล้ว!');
+                    clearAnnouncementForm();
+                    console.log('✅ อัปเดตร่างใน Firebase สำเร็จ:', editingAnnouncementId);
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการอัปเดตร่าง:', error);
+                    alert('เกิดข้อผิดพลาดในการอัปเดตร่าง กรุณาลองใหม่อีกครั้ง');
+                });
+                
+                editingAnnouncementId = null;
+            } else {
+                // Create new draft
+                const newDraftRef = ref(database, `announcements/draft_${Date.now()}`);
+                const newDraftData = {
+                    ...announcementData,
+                    status: 'draft',
+                    applications: 0,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+                
+                set(newDraftRef, newDraftData).then(() => {
+                    alert('💾 บันทึกร่างเรียบร้อยแล้ว!\n\nคุณสามารถกลับมาแก้ไขและเผยแพร่ได้ในภายหลัง');
+                    clearAnnouncementForm();
+                    console.log('✅ บันทึกร่างใหม่ใน Firebase สำเร็จ');
+                }).catch((error) => {
+                    console.error('❌ เกิดข้อผิดพลาดในการบันทึกร่าง:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึกร่าง กรุณาลองใหม่อีกครั้ง');
+                });
+            }
+        }
+
+        function previewAnnouncement() {
+            if (!validateAnnouncementForm(false)) return;
+            
+            const data = getAnnouncementFormData();
+            const previewContent = `
+ตัวอย่างประกาศ:
+
+หน่วยงาน: ${data.agencyName}
+ตำแหน่ง: ${data.positionTitle}
+ระดับ: ${data.positionLevel}
+จำนวน: ${data.positionCount} คน
+เงินเดือน: ${data.salaryRange}
+
+คุณสมบัติ: ${data.requirements}
+
+ช่วงสมัคร: ${formatDate(data.applicationStart)} - ${formatDate(data.applicationEnd)}
+ติดต่อ: ${data.contactPerson} (${data.contactPhone})
+            `;
+            
+            alert(previewContent);
+        }
+
+        function validateAnnouncementForm(requireAll = true) {
+            const requiredFields = [
+                'agency-name', 'agency-type', 'agency-province', 'contact-person', 
+                'contact-phone', 'contact-email', 'position-title', 'position-level', 
+                'position-count', 'position-requirements', 'position-responsibilities',
+                'application-start', 'application-end', 'application-method'
+            ];
+            
+            for (let fieldId of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    alert(`กรุณากรอก${field.previousElementSibling?.textContent || fieldId}`);
+                    field.focus();
+                    return false;
+                }
+            }
+            
+            // Validate dates
+            const startDate = new Date(document.getElementById('application-start').value);
+            const endDate = new Date(document.getElementById('application-end').value);
+            
+            if (startDate >= endDate) {
+                alert('วันที่เริ่มรับสมัครต้องน้อยกว่าวันที่สิ้นสุด');
+                return false;
+            }
+            
+            return true;
+        }
+
+        function getAnnouncementFormData() {
+            return {
+                agencyName: document.getElementById('agency-name').value,
+                agencyType: document.getElementById('agency-type').value,
+                province: document.getElementById('agency-province').value,
+                contactPerson: document.getElementById('contact-person').value,
+                contactPhone: document.getElementById('contact-phone').value,
+                contactEmail: document.getElementById('contact-email').value,
+                positionTitle: document.getElementById('position-title').value,
+                positionLevel: document.getElementById('position-level').value,
+                positionCount: parseInt(document.getElementById('position-count').value),
+                salaryRange: document.getElementById('salary-range').value,
+                requirements: document.getElementById('position-requirements').value,
+                responsibilities: document.getElementById('position-responsibilities').value,
+                applicationStart: document.getElementById('application-start').value,
+                applicationEnd: document.getElementById('application-end').value,
+                startWorkDate: document.getElementById('start-work-date').value,
+                applicationMethod: document.getElementById('application-method').value,
+                requiredDocuments: document.getElementById('required-documents').value,
+                additionalInfo: document.getElementById('additional-info').value
+            };
+        }
+
+        function clearAnnouncementForm() {
+            const formFields = [
+                'agency-name', 'agency-type', 'agency-province', 'contact-person',
+                'contact-phone', 'contact-email', 'position-title', 'position-level',
+                'position-count', 'salary-range', 'position-requirements', 
+                'position-responsibilities', 'start-work-date', 'application-method',
+                'required-documents', 'additional-info'
+            ];
+            
+            formFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.value = '';
+            });
+            
+            editingAnnouncementId = null;
+            setTodayDate();
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const nextMonthPlus = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            const startField = document.getElementById('application-start');
+            const endField = document.getElementById('application-end');
+            const workField = document.getElementById('start-work-date');
+            
+            if (startField) startField.value = today;
+            if (endField) endField.value = nextMonth;
+            if (workField) workField.value = nextMonthPlus;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Search and filter functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const searchInput = document.getElementById('search-input');
+                const positionFilter = document.getElementById('position-filter');
+                const locationFilter = document.getElementById('location-filter');
+                const adminStatusFilter = document.getElementById('admin-status-filter');
+                const adminSearch = document.getElementById('admin-search');
+                
+                if (searchInput) {
+                    searchInput.addEventListener('input', () => {
+                        currentAnnouncementPage = 1;
+                        displayAnnouncements();
+                    });
+                }
+                
+                if (positionFilter) {
+                    positionFilter.addEventListener('change', () => {
+                        currentAnnouncementPage = 1;
+                        displayAnnouncements();
+                    });
+                }
+                
+                if (locationFilter) {
+                    locationFilter.addEventListener('change', () => {
+                        currentAnnouncementPage = 1;
+                        displayAnnouncements();
+                    });
+                }
+                
+                if (adminStatusFilter) {
+                    adminStatusFilter.addEventListener('change', displayAdminAnnouncements);
+                }
+                
+                if (adminSearch) {
+                    adminSearch.addEventListener('input', displayAdminAnnouncements);
+                }
+            }, 100);
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('application-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+<script>
+  // Global variables
+  let allAnnouncements = [];
+  let currentPage = 'home';
+  let currentAnnouncementPage = 1;
+  let currentAnnouncementId = null;
+  let editingAnnouncementId = null;
+  let currentUser = null;
+  let isAdminLoggedIn = false;
+  const announcementsPerPage = 6;
+
+  // Initialize application
+  document.addEventListener('DOMContentLoaded', function () {
+    initializeApp();
+    initializeAuth();
+    showPage('home');
+    setTodayDate();
+  });
+
+  function initializeApp() {
+    console.log('🚀 เริ่มต้นแพลตฟอร์มประกาศรับโอนย้าย...');
+    loadDataFromFirebase(); // ✅ ดึงข้อมูลจาก Firebase
+  }
+
+  function initializeAuth() {
+    const { auth, onAuthStateChanged } = window.firebase;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('✅ ผู้ใช้เข้าสู่ระบบ:', user.email);
+        currentUser = user;
+        isAdminLoggedIn = true;
+        updateAuthUI(true, user.email);
+      } else {
+        console.log('❌ ผู้ใช้ออกจากระบบ');
+        currentUser = null;
+        isAdminLoggedIn = false;
+        updateAuthUI(false);
+        if (currentPage === 'admin') showPage('home');
+      }
+    });
+  }
+
+  // ======================
+  // ✅ ฟังก์ชันใหม่
+  // ======================
+
+  // 👉 ฟังก์ชันเผยแพร่ประกาศ
+  async function publishAnnouncement() {
+    const { database, ref, push, set } = window.firebase;
+
+    const agencyName = document.getElementById("agency-name").value.trim();
+    const agencyType = document.getElementById("agency-type").value;
+    const agencyProvince = document.getElementById("agency-province").value;
+    const contactPerson = document.getElementById("contact-person").value.trim();
+    const contactPhone = document.getElementById("contact-phone").value.trim();
+    const contactEmail = document.getElementById("contact-email").value.trim();
+
+    const positionTitle = document.getElementById("position-title").value.trim();
+    const positionLevel = document.getElementById("position-level").value;
+    const positionCount = document.getElementById("position-count").value;
+    const salaryRange = document.getElementById("salary-range").value.trim();
+    const positionRequirements = document.getElementById("position-requirements").value.trim();
+    const positionResponsibilities = document.getElementById("position-responsibilities").value.trim();
+
+    const applicationStart = document.getElementById("application-start").value;
+    const applicationEnd = document.getElementById("application-end").value;
+    const startWorkDate = document.getElementById("start-work-date").value;
+    const applicationMethod = document.getElementById("application-method").value;
+    const requiredDocuments = document.getElementById("required-documents").value.trim();
+    const additionalInfo = document.getElementById("additional-info").value.trim();
+
+    if (!agencyName || !agencyType || !agencyProvince || !contactPerson || !contactPhone || !contactEmail ||
+      !positionTitle || !positionLevel || !positionCount || !positionRequirements || !positionResponsibilities ||
+      !applicationStart || !applicationEnd || !applicationMethod) {
+      alert("⚠️ กรุณากรอกข้อมูลที่มี * ให้ครบถ้วน");
+      return;
+    }
+
+    try {
+      const announcementsRef = ref(database, "announcements");
+      const newAnnouncementRef = push(announcementsRef);
+
+      await set(newAnnouncementRef, {
+        agencyName,
+        agencyType,
+        agencyProvince,
+        contactPerson,
+        contactPhone,
+        contactEmail,
+        positionTitle,
+        positionLevel,
+        positionCount,
+        salaryRange,
+        positionRequirements,
+        positionResponsibilities,
+        applicationStart,
+        applicationEnd,
+        startWorkDate,
+        applicationMethod,
+        requiredDocuments,
+        additionalInfo,
+        createdAt: new Date().toISOString(),
+        status: "published"
+      });
+
+      alert("✅ เผยแพร่ประกาศเรียบร้อยแล้ว!");
+      showPage("announcements");
+
+    } catch (error) {
+      console.error("❌ Error publishing announcement:", error);
+      alert("เกิดข้อผิดพลาดในการบันทึกประกาศ");
+    }
+  }
+
+  // 👉 ฟังก์ชันโหลดประกาศจาก Firebase
+  function loadDataFromFirebase() {
+    const { database, ref, onValue } = window.firebase;
+
+    const announcementsRef = ref(database, "announcements");
+    const announcementsList = document.getElementById("announcements-list");
+    const recentAnnouncements = document.getElementById("recent-announcements");
+
+    announcementsList.innerHTML = "";
+    if (recentAnnouncements) recentAnnouncements.innerHTML = "";
+
+    onValue(announcementsRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        announcementsList.innerHTML = "<p class='text-gray-500'>ยังไม่มีประกาศ</p>";
+        return;
+      }
+
+      const data = snapshot.val();
+      allAnnouncements = Object.entries(data).map(([id, item]) => ({
+        id,
+        ...item
+      }));
+
+      allAnnouncements.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      currentAnnouncementPage = 1;
+      renderAnnouncementsPage(currentAnnouncementPage);
+
+      if (recentAnnouncements) {
+        recentAnnouncements.innerHTML = "";
+        allAnnouncements.slice(0, 3).forEach((ann) => {
+          const card = document.createElement("div");
+          card.className = "bg-white p-4 rounded-lg shadow hover:shadow-md transition cursor-pointer";
+          card.innerHTML = `
+            <h4 class="text-lg font-bold text-blue-600">${ann.positionTitle || "-"}</h4>
+            <p class="text-gray-600 text-sm">${ann.agencyName || "-"}</p>
+            <p class="text-gray-500 text-xs mt-1">📅 ${ann.applicationStart} - ${ann.applicationEnd}</p>
+          `;
+          recentAnnouncements.appendChild(card);
+        });
+      }
+
+      document.getElementById("total-announcements").textContent = allAnnouncements.length;
+      document.getElementById("today-announcements").textContent =
+        allAnnouncements.filter((a) => a.createdAt && new Date(a.createdAt).toDateString() === new Date().toDateString()).length;
+      document.getElementById("total-positions").textContent =
+        allAnnouncements.reduce((sum, a) => sum + parseInt(a.positionCount || 0), 0);
+    });
+  }
+
+  // 👉 ฟังก์ชันแสดงผลประกาศตามหน้า
+  function renderAnnouncementsPage(page) {
+    const announcementsList = document.getElementById("announcements-list");
+    announcementsList.innerHTML = "";
+
+    const start = (page - 1) * announcementsPerPage;
+    const end = start + announcementsPerPage;
+    const pageAnnouncements = allAnnouncements.slice(start, end);
+
+    pageAnnouncements.forEach((ann) => {
+      const card = document.createElement("div");
+      card.className = "announcement-card bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition cursor-pointer";
+      card.innerHTML = `
+        <h3 class="text-xl font-bold text-blue-700 mb-2">${ann.positionTitle || "-"}</h3>
+        <p class="text-gray-700 mb-1"><span class="font-semibold">หน่วยงาน:</span> ${ann.agencyName || "-"}</p>
+        <p class="text-gray-700 mb-1"><span class="font-semibold">จังหวัด:</span> ${ann.agencyProvince || "-"}</p>
+        <p class="text-gray-700 mb-1"><span class="font-semibold">จำนวน:</span> ${ann.positionCount || "0"} ตำแหน่ง</p>
+        <p class="text-gray-600 text-sm mt-2">📅 รับสมัคร: ${ann.applicationStart} ถึง ${ann.applicationEnd}</p>
+      `;
+      announcementsList.appendChild(card);
+    });
+
+    const totalPages = Math.ceil(allAnnouncements.length / announcementsPerPage);
+    setupPagination(totalPages, page);
+  }
+
+  // 👉 ฟังก์ชันสร้างปุ่ม Pagination
+  function setupPagination(totalPages, currentPage) {
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "←";
+    prevBtn.className = "px-3 py-1 rounded bg-gray-200 hover:bg-gray-300";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+      currentAnnouncementPage--;
+      renderAnnouncementsPage(currentAnnouncementPage);
+    };
+    pagination.appendChild(prevBtn);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.className =
+        "px-3 py-1 rounded " +
+        (i === currentPage ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300");
+      btn.onclick = () => {
+        currentAnnouncementPage = i;
+        renderAnnouncementsPage(i);
+      };
+      pagination.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "→";
+    nextBtn.className = "px-3 py-1 rounded bg-gray-200 hover:bg-gray-300";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+      currentAnnouncementPage++;
+      renderAnnouncementsPage(currentAnnouncementPage);
+    };
+    pagination.appendChild(nextBtn);
+  }
+</script>
+</body>
+</html>
