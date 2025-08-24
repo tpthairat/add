@@ -172,8 +172,8 @@
                                 </button>
                         </div>
                             </div>
-                        <!-- 🛠 ปุ่ม Admin (ย้ายมาไว้ ‘ใน’ กล่องเมนูหลัก) -->
-<button id="manageNewsBtn" class="nav-btn text-gray-600 hover:text-red-600 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors text-base font-medium">
+                        <!-- 🛠 ปุ่ม Admin (ย้ายมาไว้ 'ใน' กล่องเมนูหลัก) -->
+<button id="manageNewsNavBtn" class="nav-btn text-gray-600 hover:text-red-600 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors text-base font-medium">
     🛠 จัดการข่าวสาร
 </button>
                 </div>
@@ -509,7 +509,7 @@
 <div id="manageNewsPage" class="page-content hidden">
     <div class="flex justify-between items-center mb-8">
         <h2 class="text-3xl font-bold text-gray-800">📰 จัดการข่าวสาร</h2>
-        <button onclick="addNewsForm()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">+ เพิ่มข่าวใหม่</button>
+        <button onclick="adminAddNewsForm()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">+ เพิ่มข่าวใหม่</button>
     </div>
 
     <!-- ตารางข่าวสาร -->
@@ -639,7 +639,6 @@
                                 <option value="อุบลราชธานี">อุบลราชธานี</option>
                             </select>
                         </div>
-                        
                         <!-- Position Level Filter -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">ระดับตำแหน่ง</label>
@@ -987,7 +986,6 @@
                 </form>
             </div>
         </div>
-
         <!-- Post Transfer Page -->
         <div id="postTransferPage" class="page-content hidden">
             <div class="text-center mb-8">
@@ -1307,7 +1305,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Laws and Regulations Page -->
         <div id="lawsRegulationsPage" class="page-content hidden">
             <div class="flex justify-between items-center mb-8">
@@ -1554,7 +1551,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">จัดการข่าว</h3>
                     <div class="space-y-4">
-                        <button id="manageNewsBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">จัดการข่าวทั้งหมด</button>
+                        <button id="manageNewsAdminBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">จัดการข่าวทั้งหมด</button>
                         <button id="addNewsAdminBtn" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">เพิ่มข่าวใหม่</button>
                         <button id="pendingNewsBtn" class="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors">ข่าวรอการอนุมัติ</button>
                     </div>
@@ -1647,7 +1644,6 @@
                         </li>
                     </ul>
                 </div>
-
                 <!-- Contact Section -->
                 <div>
                     <h4 class="text-lg font-semibold mb-4">ติดต่อเรา</h4>
@@ -1986,7 +1982,6 @@
                 alert('เกิดข้อผิดพลาดในการออกจากระบบ');
             });
         }
-
         function getAuthErrorMessage(errorCode) {
             switch (errorCode) {
                 case 'auth/user-not-found':
@@ -2310,7 +2305,6 @@
             
             container.innerHTML = relatedNews.map(news => createNewsCard(news)).join('');
         }
-
         // Generate job detail HTML based on news type
         function generateJobDetailHTML(news) {
             const isExam = news.category === 'exam';
@@ -2652,7 +2646,6 @@
             });
             document.getElementById('openPositions').textContent = totalPositions;
         }
-
         // Load all news for news page
         function loadAllNews() {
             const approvedNews = getApprovedNews();
@@ -3000,7 +2993,6 @@
             
             // Sort results
             filtered = sortResults(filtered, sortBy);
-            
             // Update result count
             updateSearchSummary(filtered.length);
             
@@ -3344,7 +3336,6 @@
         // Advanced search controls
         document.getElementById('toggleAdvancedSearch').addEventListener('click', toggleAdvancedSearch);
         document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
-        
         // Advanced filter event listeners
         document.getElementById('provinceFilter').addEventListener('change', filterNews);
         document.getElementById('positionLevelFilter').addEventListener('change', filterNews);
@@ -3694,7 +3685,6 @@ ${responsibilities}
             `;
             container.appendChild(linkDiv);
         }
-
         // Add link functions for transfer form
         let transferLinkCounter = 0;
         function addTransferLink() {
@@ -4016,8 +4006,8 @@ function loadNewsAdmin() {
                     <td class="p-3">${data.title}</td>
                     <td class="p-3">${data.date || '-'}</td>
                     <td class="p-3">
-                        <button onclick="editNews('${key}')" class="text-blue-600 hover:underline">แก้ไข</button> | 
-                        <button onclick="deleteNews('${key}')" class="text-red-600 hover:underline">ลบ</button>
+                        <button onclick="adminEditNews('${key}')" class="text-blue-600 hover:underline">แก้ไข</button> | 
+                        <button onclick="adminDeleteNews('${key}')" class="text-red-600 hover:underline">ลบ</button>
                     </td>
                 </tr>`;
         });
@@ -4025,7 +4015,7 @@ function loadNewsAdmin() {
 }
 
 // ลบข่าว
-function deleteNews(key) {
+function adminDeleteNews(key) {
     if(confirm("ยืนยันการลบข่าวนี้?")) {
         db.ref("news/"+key).remove().then(() => {
             alert("ลบเรียบร้อย");
@@ -4035,43 +4025,36 @@ function deleteNews(key) {
 }
 
 // แก้ไขข่าว
-function editNews(key) {
+function adminEditNews(key) {
     db.ref("news/"+key).once("value", snap => {
         const data = snap.val();
         const newTitle = prompt("แก้ไขหัวข้อ:", data.title);
         if(newTitle) {
-            db.ref("news/"+key).update({ title: newTitle });
-            loadNewsAdmin();
+            db.ref("news/"+key).update({ title: newTitle }).then(() => loadNewsAdmin());
         }
     });
 }
-
 // เพิ่มข่าวใหม่
-function addNewsForm() {
+function adminAddNewsForm() {
     const title = prompt("หัวข้อข่าว:");
     if(title) {
         const date = new Date().toLocaleDateString('th-TH');
-        db.ref("news").push({ title, date });
-        loadNewsAdmin();
+        db.ref("news").push({ title, date }).then(() => adminLoadNews());
     }
 }
 
 // เปิดหน้า Manage News
-document.getElementById("manageNewsBtn").addEventListener("click", () => {
+document.getElementById("manageNewsNavBtn").addEventListener("click", () => {
+    if (!isAdminLoggedIn) { showAdminLogin(); return; }
     showPage("manageNews");
-    loadNewsAdmin();
+    adminLoadNews();
+});
+
+document.getElementById('manageNewsAdminBtn').addEventListener('click', () => {
+    if (!isAdminLoggedIn) { showAdminLogin(); return; }
+    showPage('manageNews');
+    adminLoadNews();
 });
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
