@@ -157,9 +157,7 @@
        </div>
       </div><!-- Navigation -->
       <nav class="flex justify-center gap-3 flex-wrap mb-6"><button id="btn-home" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 active bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30"> 🏠 หน้าหลัก </button> <button id="btn-video" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📹 วิดีโอ </button> <button id="btn-document" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📄 เอกสาร </button> <button id="btn-mindmap" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 🗺️ มายแมพ </button> <button id="btn-quiz" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📝 แบบทดสอบ </button>
-      </nav><!-- Admin Button -->
-      <div class="text-center"><button id="btn-admin" class="px-8 py-3 rounded-full font-bold transition-all duration-200 hover:scale-105 shadow-lg bg-white text-purple-700 hover:shadow-xl"> ⚙️ จัดการเนื้อหา </button>
-      </div>
+      </nav>
      </div>
     </header>
     <main class="flex-1 px-6 py-8">
@@ -254,31 +252,67 @@
     <div id="admin-modal" class="fixed inset-0 z-50 hidden">
      <div class="modal-backdrop absolute inset-0" id="modal-backdrop"></div>
      <div class="relative min-h-full flex items-center justify-center p-4">
-      <div id="admin-panel" class="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90%] overflow-y-auto">
-       <div class="p-6">
-        <div class="flex justify-between items-center mb-4">
-         <h2 id="admin-title" class="font-bold text-xl">⚙️ จัดการเนื้อหา</h2><button id="btn-close-modal" class="text-3xl hover:scale-110 transition-transform">×</button>
-        </div><!-- Add Content Form -->
-        <form id="add-content-form" class="space-y-3 mb-6">
-         <div><label for="content-type" id="label-type" class="block font-semibold mb-1 text-sm">ประเภทเนื้อหา</label> <select id="content-type" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm"> <option value="video">📹 วิดีโอ</option> <option value="document">📄 เอกสาร</option> <option value="mindmap">🗺️ มายแมพ</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
-         </div>
-         <div><label for="content-title" id="label-title" class="block font-semibold mb-1 text-sm">ชื่อเรื่อง</label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่อง" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
-         </div>
-         <div><label for="content-description" id="label-desc" class="block font-semibold mb-1 text-sm">คำอธิบาย</label> <textarea id="content-description" placeholder="ใส่คำอธิบาย" rows="2" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required></textarea>
-         </div>
-         <div><label for="content-url" id="label-url" class="block font-semibold mb-1 text-sm">ลิงก์ (URL)</label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
-          <p id="url-hint" class="text-xs mt-1 opacity-70">สำหรับวิดีโอ: ใส่ลิงก์ YouTube</p>
-         </div>
-         <div><label for="content-image" id="label-image" class="block font-semibold mb-1 text-sm">ลิงก์รูปภาพ (ไม่บังคับ)</label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm">
-         </div><button type="submit" id="btn-submit" class="w-full py-3 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-sm"> <span id="submit-text">➕ เพิ่มเนื้อหา</span>
-          <div id="submit-spinner" class="spinner hidden"></div></button>
-        </form><!-- Content List -->
-        <div>
-         <h3 id="manage-title" class="font-semibold mb-3 text-base">รายการเนื้อหาทั้งหมด</h3>
-         <div id="admin-content-list" class="space-y-2 max-h-80 overflow-y-auto"><!-- Content items will be loaded here -->
-         </div>
-         <div id="admin-empty" class="text-center py-8 opacity-70 hidden">
-          ยังไม่มีเนื้อหา
+      <div id="admin-panel" class="rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90%] overflow-y-auto">
+       <div class="p-8"><!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+         <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl shadow-lg">
+           ⚙️
+          </div>
+          <div>
+           <h2 id="admin-title" class="font-bold text-3xl">ระบบจัดการเนื้อหา</h2>
+           <p id="admin-subtitle" class="text-sm opacity-70">เพิ่ม แก้ไข และจัดการเนื้อหาทั้งหมด</p>
+          </div>
+         </div><button id="btn-close-modal" class="w-12 h-12 rounded-full hover:bg-opacity-10 hover:bg-black transition-all flex items-center justify-center text-3xl hover:scale-110">×</button>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><!-- Left Column: Add Content Form -->
+         <div>
+          <div class="rounded-xl p-6 shadow-lg border-2" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(236, 72, 153, 0.05));">
+           <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl shadow">
+             ➕
+            </div>
+            <h3 id="form-title" class="font-bold text-xl">เพิ่มเนื้อหาใหม่</h3>
+           </div>
+           <form id="add-content-form" class="space-y-4">
+            <div><label for="content-type" id="label-type" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>📂</span> ประเภทเนื้อหา </label> <select id="content-type" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm font-semibold shadow-sm"> <option value="video">📹 วิดีโอบทเรียน</option> <option value="document">📄 เอกสารประกอบ</option> <option value="mindmap">🗺️ มายแมพความรู้</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
+            </div>
+            <div><label for="content-title" id="label-title" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>✏️</span> ชื่อเรื่อง </label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่องที่น่าสนใจ" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm" required>
+            </div>
+            <div><label for="content-description" id="label-desc" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>📝</span> คำอธิบาย </label> <textarea id="content-description" placeholder="อธิบายรายละเอียดเนื้อหา" rows="3" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm" required></textarea>
+            </div>
+            <div><label for="content-url" id="label-url" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>🔗</span> ลิงก์เนื้อหา </label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm" required>
+             <p id="url-hint" class="text-xs mt-2 opacity-70 flex items-center gap-1"><span>💡</span> สำหรับวิดีโอ: ใส่ลิงก์ YouTube</p>
+            </div>
+            <div><label for="content-image" id="label-image" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>🖼️</span> ลิงก์รูปภาพ <span class="text-xs opacity-60">(ไม่บังคับ)</span> </label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm">
+            </div><button type="submit" id="btn-submit" class="w-full py-4 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-base bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl"> <span id="submit-text">➕ เพิ่มเนื้อหา</span>
+             <div id="submit-spinner" class="spinner hidden"></div></button>
+           </form>
+          </div>
+         </div><!-- Right Column: Content List -->
+         <div>
+          <div class="rounded-xl p-6 shadow-lg border-2">
+           <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl shadow">
+              📋
+             </div>
+             <div>
+              <h3 id="manage-title" class="font-bold text-xl">รายการเนื้อหา</h3>
+              <p id="content-count" class="text-xs opacity-70">ทั้งหมด 0 รายการ</p>
+             </div>
+            </div>
+           </div>
+           <div id="admin-content-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"><!-- Content items will be loaded here -->
+           </div>
+           <div id="admin-empty" class="text-center py-16 opacity-70 hidden">
+            <div class="text-6xl mb-4">
+             📭
+            </div>
+            <p class="text-lg font-semibold">ยังไม่มีเนื้อหา</p>
+            <p class="text-sm mt-2">เริ่มเพิ่มเนื้อหาแรกของคุณได้เลย!</p>
+           </div>
+          </div>
          </div>
         </div>
        </div>
@@ -333,7 +367,9 @@
       <div class="border-t border-white border-opacity-20 pt-6">
        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <p id="footer-copyright" class="text-white opacity-70 text-sm text-center md:text-left">© 2024 THE ONE สอบราชการ. All rights reserved.</p>
-        <div class="flex gap-4"><a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📘</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📷</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">🐦</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">▶️</span> </a>
+        <div class="flex items-center gap-4"><button id="btn-admin" class="px-6 py-2 rounded-full font-semibold transition-all duration-200 hover:scale-105 shadow-lg bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30 hover:bg-opacity-30 text-sm"> 🔐 เข้าสู่ระบบแอดมิน </button>
+         <div class="flex gap-2"><a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📘</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📷</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">🐦</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">▶️</span> </a>
+         </div>
         </div>
        </div>
       </div>
@@ -1087,6 +1123,14 @@
 
       const adminList = document.getElementById('admin-content-list');
       const adminEmpty = document.getElementById('admin-empty');
+      const contentCount = document.getElementById('content-count');
+
+      // Update count
+      if (contentCount) {
+        contentCount.textContent = `ทั้งหมด ${allContent.length} รายการ`;
+        contentCount.style.color = textColor;
+        contentCount.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      }
 
       if (allContent.length === 0) {
         adminList.innerHTML = '';
@@ -1096,16 +1140,27 @@
         adminEmpty.classList.add('hidden');
         adminList.innerHTML = allContent.map(item => {
           const typeIcon = item.type === 'video' ? '📹' : item.type === 'document' ? '📄' : item.type === 'mindmap' ? '🗺️' : '📝';
+          const typeName = item.type === 'video' ? 'วิดีโอ' : item.type === 'document' ? 'เอกสาร' : item.type === 'mindmap' ? 'มายแมพ' : 'แบบทดสอบ';
           const itemId = item.firebaseId || item.__backendId || item.id;
           return `
-            <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: ${backgroundColor};">
-              <div class="flex-1">
-                <div class="font-semibold text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${typeIcon} ${item.title}</div>
-                <div class="text-xs opacity-70" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.type}</div>
+            <div class="rounded-xl p-4 shadow-md hover:shadow-lg transition-all border-2 hover:scale-[1.02]" style="background-color: ${surfaceColor}; border-color: ${backgroundColor};">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">${typeIcon}</span>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">${item.title}</div>
+                      <div class="text-xs opacity-70 mt-1" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">
+                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: ${primaryColor}20; color: ${primaryColor};">${typeName}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-xs opacity-70 line-clamp-2 mt-2" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
+                </div>
+                <button onclick="deleteContent('${itemId}')" class="px-4 py-2 rounded-lg text-xs font-bold hover:scale-110 transition-transform shadow-md hover:shadow-lg flex-shrink-0" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; font-family: ${customFont}, ${baseFontStack};">
+                  🗑️
+                </button>
               </div>
-              <button onclick="deleteContent('${itemId}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:scale-105 transition-transform" style="background-color: #ef4444; color: white; font-family: ${customFont}, ${baseFontStack};">
-                🗑️ ลบ
-              </button>
             </div>
           `;
         }).join('');
@@ -1226,12 +1281,63 @@
             </div>
           `;
         }
-      } else {
+      } else if (item.type === 'document') {
+        // Check if URL is a PDF or Google Drive document
+        const isPDF = item.url.toLowerCase().endsWith('.pdf') || item.url.includes('drive.google.com');
+        const isGoogleDocs = item.url.includes('docs.google.com');
+        
+        let embedUrl = item.url;
+        if (item.url.includes('drive.google.com/file/d/')) {
+          // Convert Google Drive link to embed format
+          const fileId = item.url.match(/\/d\/([^/]+)/)?.[1];
+          if (fileId) {
+            embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+          }
+        } else if (isGoogleDocs && !item.url.includes('/preview')) {
+          // Convert Google Docs to preview mode
+          embedUrl = item.url.replace('/edit', '/preview');
+        }
+        
         viewContent.innerHTML = `
-          <div class="space-y-4">
-            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.title}" class="w-full rounded-xl" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">` : ''}
-            <p style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">${item.description}</p>
-            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 rounded-lg font-semibold" style="background-color: ${primaryColor}; color: white; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">🔗 เปิดลิงก์ต้นฉบับ</a>
+          <div class="space-y-6">
+            ${isPDF || isGoogleDocs ? `
+              <div class="rounded-xl overflow-hidden shadow-2xl" style="height: 600px;">
+                <iframe src="${embedUrl}" class="w-full h-full border-0" allow="autoplay"></iframe>
+              </div>
+            ` : item.imageUrl ? `
+              <img src="${item.imageUrl}" alt="${item.title}" class="w-full rounded-xl shadow-lg" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+            ` : `
+              <div class="rounded-xl p-12 text-center" style="background: linear-gradient(135deg, ${primaryColor}20, ${primaryColor}40);">
+                <div class="text-8xl mb-4">📄</div>
+                <h3 class="text-2xl font-bold mb-4" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">เอกสารพร้อมอ่าน!</h3>
+                <p class="mb-6 text-lg" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">คลิกปุ่มด้านล่างเพื่อเปิดเอกสาร</p>
+              </div>
+            `}
+            <div class="p-6 rounded-xl" style="background-color: ${config.background_color || defaultConfig.background_color};">
+              <h4 class="font-bold mb-2 text-lg" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">เกี่ยวกับเอกสารนี้</h4>
+              <p class="mb-4" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">${item.description}</p>
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg" style="background-color: ${primaryColor}; color: white; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">🔗 เปิดในหน้าต่างใหม่</a>
+            </div>
+          </div>
+        `;
+      } else {
+        // For mindmap and quiz
+        viewContent.innerHTML = `
+          <div class="space-y-6">
+            ${item.imageUrl ? `
+              <img src="${item.imageUrl}" alt="${item.title}" class="w-full rounded-xl shadow-lg" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+            ` : `
+              <div class="rounded-xl p-12 text-center" style="background: linear-gradient(135deg, ${primaryColor}20, ${primaryColor}40);">
+                <div class="text-8xl mb-4">${item.type === 'mindmap' ? '🗺️' : '📝'}</div>
+                <h3 class="text-2xl font-bold mb-4" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">พร้อมเริ่มแล้ว!</h3>
+                <p class="mb-6 text-lg" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">คลิกปุ่มด้านล่างเพื่อเปิด</p>
+              </div>
+            `}
+            <div class="p-6 rounded-xl" style="background-color: ${config.background_color || defaultConfig.background_color};">
+              <h4 class="font-bold mb-2 text-lg" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">รายละเอียด</h4>
+              <p class="mb-4" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">${item.description}</p>
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg" style="background-color: ${primaryColor}; color: white; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">🔗 เปิดลิงก์</a>
+            </div>
           </div>
         `;
       }
@@ -1314,7 +1420,14 @@
     document.getElementById('btn-quiz').addEventListener('click', () => switchSection('quiz'));
 
     document.getElementById('btn-admin').addEventListener('click', () => {
-      document.getElementById('admin-modal').classList.remove('hidden');
+      // Check if user is logged in with Firebase
+      if (currentUser) {
+        // User is logged in, go directly to admin panel
+        document.getElementById('admin-modal').classList.remove('hidden');
+      } else {
+        // User not logged in, show message
+        showToast('กรุณาเข้าสู่ระบบก่อนเข้าหน้าจัดการ', 'error');
+      }
     });
 
     document.getElementById('btn-close-modal').addEventListener('click', () => {
@@ -1448,5 +1561,5 @@
 
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6b30373dc45b7',t:'MTc2Mjc4OTc2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6d856672d45b7',t:'MTc2Mjc5MTI4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
