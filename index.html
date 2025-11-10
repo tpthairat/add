@@ -7,6 +7,8 @@
   <script src="/_sdk/element_sdk.js"></script>
   <script src="/_sdk/data_sdk.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       box-sizing: border-box;
@@ -219,6 +221,26 @@
    </div>
   </div>
   <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDht0H3DLh47FJREAzVkStw9BHkB2LI-3w",
+      authDomain: "jasmin2569.firebaseapp.com",
+      databaseURL: "https://jasmin2569-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "jasmin2569",
+      storageBucket: "jasmin2569.firebasestorage.app",
+      messagingSenderId: ". ",
+      appId: "1:. :web:d7c2ffa7cf935bbc0195be"
+    };
+
+    // Initialize Firebase
+    let db;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+    }
+
     const defaultConfig = {
       background_color: "#f8fafc",
       surface_color: "#ffffff",
@@ -234,6 +256,7 @@
     let allContent = [];
     let currentSection = 'video';
     let isLoggedIn = false;
+    let unsubscribeFirestore = null;
 
     // Login System
     function handleLogin(username, password) {
@@ -429,6 +452,65 @@
       ]);
     }
 
+    // Firebase Functions
+    function loadContentFromFirebase() {
+      if (!db) {
+        showToast('ไม่สามารถเชื่อมต่อ Firebase ได้', 'error');
+        return;
+      }
+
+      // Real-time listener
+      unsubscribeFirestore = db.collection('learning-content')
+        .orderBy('createdAt', 'desc')
+        .onSnapshot((snapshot) => {
+          allContent = [];
+          snapshot.forEach((doc) => {
+            allContent.push({
+              firebaseId: doc.id,
+              ...doc.data()
+            });
+          });
+          renderContent();
+          renderAdminList();
+        }, (error) => {
+          console.error('Error loading content:', error);
+          showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+        });
+    }
+
+    async function addContentToFirebase(contentData) {
+      if (!db) {
+        showToast('ไม่สามารถเชื่อมต่อ Firebase ได้', 'error');
+        return false;
+      }
+
+      try {
+        await db.collection('learning-content').add({
+          ...contentData,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return true;
+      } catch (error) {
+        console.error('Error adding content:', error);
+        return false;
+      }
+    }
+
+    async function deleteContentFromFirebase(firebaseId) {
+      if (!db) {
+        showToast('ไม่สามารถเชื่อมต่อ Firebase ได้', 'error');
+        return false;
+      }
+
+      try {
+        await db.collection('learning-content').doc(firebaseId).delete();
+        return true;
+      } catch (error) {
+        console.error('Error deleting content:', error);
+        return false;
+      }
+    }
+
     // Data SDK Handler
     const dataHandler = {
       onDataChanged(data) {
@@ -465,8 +547,9 @@
       } else {
         videoEmpty.classList.add('hidden');
         videoList.innerHTML = videos.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
           return `
-            <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${item.__backendId}')">
+            <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
               ${item.imageUrl ? `
                 <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
               ` : `
@@ -497,8 +580,10 @@
         documentEmpty.style.color = textColor;
       } else {
         documentEmpty.classList.add('hidden');
-        documentList.innerHTML = documents.map(item => `
-          <div class="card-hover rounded-xl p-6 shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${item.__backendId}')">
+        documentList.innerHTML = documents.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          return `
+          <div class="card-hover rounded-xl p-6 shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
             <div class="flex items-start gap-4">
               ${item.imageUrl ? `
                 <img src="${item.imageUrl}" alt="${item.title}" class="w-24 h-24 rounded-lg object-cover flex-shrink-0" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
@@ -511,7 +596,8 @@
               </div>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
       }
 
       // Render mindmaps
@@ -525,8 +611,10 @@
         mindmapEmpty.style.color = textColor;
       } else {
         mindmapEmpty.classList.add('hidden');
-        mindmapList.innerHTML = mindmaps.map(item => `
-          <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${item.__backendId}')">
+        mindmapList.innerHTML = mindmaps.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          return `
+          <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
             ${item.imageUrl ? `
               <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
             ` : `
@@ -537,7 +625,8 @@
               <p class="line-clamp-2" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 0.9}px;">${item.description}</p>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
       }
     }
 
@@ -562,13 +651,14 @@
         adminEmpty.classList.add('hidden');
         adminList.innerHTML = allContent.map(item => {
           const typeIcon = item.type === 'video' ? '📹' : item.type === 'document' ? '📄' : '🗺️';
+          const itemId = item.firebaseId || item.__backendId || item.id;
           return `
             <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: ${backgroundColor};">
               <div class="flex-1">
                 <div class="font-semibold text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${typeIcon} ${item.title}</div>
                 <div class="text-xs opacity-70" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.type}</div>
               </div>
-              <button onclick="deleteContent('${item.__backendId}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:scale-105 transition-transform" style="background-color: #ef4444; color: white; font-family: ${customFont}, ${baseFontStack};">
+              <button onclick="deleteContent('${itemId}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:scale-105 transition-transform" style="background-color: #ef4444; color: white; font-family: ${customFont}, ${baseFontStack};">
                 🗑️ ลบ
               </button>
             </div>
@@ -610,20 +700,34 @@
       }, 3000);
     }
 
-    async function deleteContent(backendId) {
-      const item = allContent.find(c => c.__backendId === backendId);
+    async function deleteContent(itemId) {
+      const item = allContent.find(c => 
+        c.firebaseId === itemId || c.__backendId === itemId || c.id === itemId
+      );
       if (!item) return;
 
-      const result = await window.dataSdk.delete(item);
-      if (result.isOk) {
-        showToast('ลบเนื้อหาสำเร็จ!', 'success');
-      } else {
-        showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+      // Use Firebase if available
+      if (item.firebaseId) {
+        const success = await deleteContentFromFirebase(item.firebaseId);
+        if (success) {
+          showToast('ลบเนื้อหาสำเร็จ!', 'success');
+        } else {
+          showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+        }
+      } else if (window.dataSdk && item.__backendId) {
+        const result = await window.dataSdk.delete(item);
+        if (result.isOk) {
+          showToast('ลบเนื้อหาสำเร็จ!', 'success');
+        } else {
+          showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+        }
       }
     }
 
-    function viewContent(backendId) {
-      const item = allContent.find(c => c.__backendId === backendId);
+    function viewContent(itemId) {
+      const item = allContent.find(c => 
+        c.firebaseId === itemId || c.__backendId === itemId || c.id === itemId
+      );
       if (!item) return;
 
       const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
@@ -730,11 +834,21 @@
           title: document.getElementById('content-title').value,
           description: document.getElementById('content-description').value,
           url: document.getElementById('content-url').value,
-          imageUrl: document.getElementById('content-image').value || '',
-          createdAt: new Date().toISOString()
+          imageUrl: document.getElementById('content-image').value || ''
         };
 
-        if (window.dataSdk) {
+        // Try Firebase first
+        if (db) {
+          const success = await addContentToFirebase(newContent);
+          if (success) {
+            showToast('เพิ่มเนื้อหาสำเร็จ! (บันทึกใน Firebase)', 'success');
+            document.getElementById('add-content-form').reset();
+          } else {
+            showToast('เกิดข้อผิดพลาดในการบันทึก Firebase', 'error');
+          }
+        } else if (window.dataSdk) {
+          // Fallback to Data SDK
+          newContent.createdAt = new Date().toISOString();
           const result = await window.dataSdk.create(newContent);
 
           if (result.isOk) {
@@ -761,7 +875,11 @@
 
     // Initialize
     async function init() {
-      if (window.dataSdk) {
+      // Initialize Firebase listener
+      if (db) {
+        loadContentFromFirebase();
+      } else if (window.dataSdk) {
+        // Fallback to Data SDK
         const result = await window.dataSdk.init(dataHandler);
         if (!result.isOk) {
           console.error('Failed to initialize Data SDK');
@@ -778,7 +896,14 @@
       }
     }
 
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+      }
+    });
+
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c5fa86056145ca',t:'MTc2Mjc4MjIwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6781526e210fc',t:'MTc2Mjc4NzM0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
