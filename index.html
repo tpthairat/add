@@ -460,31 +460,40 @@
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
         
-        // Check if user is approved OR is an admin
-        const userDoc = await db.collection('approved-users').doc(user.uid).get();
+        // Check if user is an admin first (admins can login immediately)
         const adminDoc = await db.collection('admins').doc(user.uid).get();
         
-        // Allow login if user is approved OR is an admin
-        if (!userDoc.exists && !adminDoc.exists) {
-          // Check if user is still pending
-          const pendingDoc = await db.collection('pending-users').doc(user.uid).get();
-          
-          if (pendingDoc.exists && pendingDoc.data().status === 'pending') {
-            await auth.signOut();
-            document.getElementById('login-error').textContent = 'บัญชีของคุณรอการอนุมัติจากแอดมิน';
-            document.getElementById('login-error').classList.remove('hidden');
-            return false;
-          } else if (pendingDoc.exists && pendingDoc.data().status === 'rejected') {
-            await auth.signOut();
-            document.getElementById('login-error').textContent = 'บัญชีของคุณถูกปฏิเสธ';
-            document.getElementById('login-error').classList.remove('hidden');
-            return false;
-          } else {
-            await auth.signOut();
-            document.getElementById('login-error').textContent = 'บัญชีของคุณยังไม่ได้รับการอนุมัติ';
-            document.getElementById('login-error').classList.remove('hidden');
-            return false;
-          }
+        if (adminDoc.exists) {
+          // User is admin, allow login
+          return true;
+        }
+        
+        // Not admin, check if approved
+        const userDoc = await db.collection('approved-users').doc(user.uid).get();
+        
+        if (userDoc.exists) {
+          // User is approved, allow login
+          return true;
+        }
+        
+        // Not admin and not approved, check pending status
+        const pendingDoc = await db.collection('pending-users').doc(user.uid).get();
+        
+        if (pendingDoc.exists && pendingDoc.data().status === 'pending') {
+          await auth.signOut();
+          document.getElementById('login-error').textContent = 'บัญชีของคุณรอการอนุมัติจากแอดมิน';
+          document.getElementById('login-error').classList.remove('hidden');
+          return false;
+        } else if (pendingDoc.exists && pendingDoc.data().status === 'rejected') {
+          await auth.signOut();
+          document.getElementById('login-error').textContent = 'บัญชีของคุณถูกปฏิเสธ';
+          document.getElementById('login-error').classList.remove('hidden');
+          return false;
+        } else {
+          await auth.signOut();
+          document.getElementById('login-error').textContent = 'บัญชีของคุณยังไม่ได้รับการอนุมัติ';
+          document.getElementById('login-error').classList.remove('hidden');
+          return false;
         }
         
         return true;
@@ -1839,5 +1848,5 @@
     init();
   </script>
   </div>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c70ad4236d45b7',t:'MTc2Mjc5MzM1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c713fc377a45b7',t:'MTc2Mjc5MzczMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
