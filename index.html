@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="th">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Learning Platform</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    
+    html {
+      height: 100%;
+    }
+    
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+    }
+    
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .card-hover {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 3px solid white;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body>
+  <div id="app" class="min-h-full flex flex-col"><!-- Login Screen -->
+   <div id="login-screen" class="min-h-full flex items-center justify-center p-6 gradient-bg">
+    <div id="login-box" class="rounded-2xl shadow-2xl p-8 max-w-md w-full">
+     <div class="text-center mb-8">
+      <div class="text-6xl mb-4">
+       🔐
+      </div>
+      <h2 id="login-title" class="font-bold mb-2">เข้าสู่ระบบ</h2>
+      <p id="login-subtitle" class="opacity-70">กรุณาเข้าสู่ระบบเพื่อจัดการเนื้อหา</p>
+     </div>
+     <form id="login-form" class="space-y-4">
+      <div><label for="username" id="label-username" class="block font-semibold mb-2 text-sm">ชื่อผู้ใช้</label> <input type="text" id="username" placeholder="admin" class="w-full px-4 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
+      </div>
+      <div><label for="password" id="label-password" class="block font-semibold mb-2 text-sm">รหัสผ่าน</label> <input type="password" id="password" placeholder="••••••" class="w-full px-4 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
+      </div><button type="submit" id="btn-login" class="w-full py-3 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg"> 🔓 เข้าสู่ระบบ </button>
+      <div id="login-error" class="text-center text-sm font-semibold hidden" style="color: #ef4444;">
+       ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+      </div>
+      <div class="text-center text-sm opacity-70 mt-4">
+       <p id="demo-hint">ทดลองใช้: admin / admin123 หรือ teacher / teacher123</p>
+      </div>
+     </form>
+    </div>
+   </div><!-- Main App (Hidden until login) -->
+   <div id="main-app" class="min-h-full flex flex-col hidden"><!-- Beautiful Header -->
+    <header id="header" class="gradient-bg shadow-2xl">
+     <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="flex justify-between items-center mb-6">
+       <div class="text-center flex-1">
+        <h1 id="site-title" class="font-bold mb-2 text-white drop-shadow-lg">🎓 แพลตฟอร์มการเรียนรู้</h1>
+        <p id="site-subtitle" class="text-white opacity-90">จัดการและแชร์เนื้อหาการเรียนรู้ของคุณ</p>
+       </div><button id="btn-logout" class="px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30 text-sm"> 🚪 ออกจากระบบ </button>
+      </div><!-- Navigation -->
+      <nav class="flex justify-center gap-3 flex-wrap mb-6"><button id="btn-video" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 active bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30"> 📹 วิดีโอ </button> <button id="btn-document" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📄 เอกสาร </button> <button id="btn-mindmap" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 🗺️ มายแมพ </button>
+      </nav><!-- Admin Button -->
+      <div class="text-center"><button id="btn-admin" class="px-8 py-3 rounded-full font-bold transition-all duration-200 hover:scale-105 shadow-lg bg-white text-purple-700 hover:shadow-xl"> ⚙️ จัดการเนื้อหา </button>
+      </div>
+     </div>
+    </header>
+    <main class="flex-1 px-6 py-8">
+     <div class="max-w-7xl mx-auto"><!-- Video Section -->
+      <div id="section-video" class="content-section">
+       <div id="video-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Videos will be loaded here -->
+       </div>
+       <div id="video-empty" class="text-center py-16 hidden">
+        <div class="text-6xl mb-4">
+         📹
+        </div>
+        <p id="empty-video-text" class="text-xl font-semibold mb-2">ยังไม่มีวิดีโอ</p>
+        <p id="empty-video-desc" class="opacity-70">คลิก "จัดการเนื้อหา" เพื่อเพิ่มวิดีโอแรกของคุณ</p>
+       </div>
+      </div><!-- Document Section -->
+      <div id="section-document" class="content-section hidden">
+       <div id="document-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"><!-- Documents will be loaded here -->
+       </div>
+       <div id="document-empty" class="text-center py-16 hidden">
+        <div class="text-6xl mb-4">
+         📄
+        </div>
+        <p id="empty-doc-text" class="text-xl font-semibold mb-2">ยังไม่มีเอกสาร</p>
+        <p id="empty-doc-desc" class="opacity-70">คลิก "จัดการเนื้อหา" เพื่อเพิ่มเอกสารแรกของคุณ</p>
+       </div>
+      </div><!-- Mindmap Section -->
+      <div id="section-mindmap" class="content-section hidden">
+       <div id="mindmap-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Mindmaps will be loaded here -->
+       </div>
+       <div id="mindmap-empty" class="text-center py-16 hidden">
+        <div class="text-6xl mb-4">
+         🗺️
+        </div>
+        <p id="empty-mindmap-text" class="text-xl font-semibold mb-2">ยังไม่มีมายแมพ</p>
+        <p id="empty-mindmap-desc" class="opacity-70">คลิก "จัดการเนื้อหา" เพื่อเพิ่มมายแมพแรกของคุณ</p>
+       </div>
+      </div>
+     </div>
+    </main><!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 z-50 hidden">
+     <div class="modal-backdrop absolute inset-0" id="modal-backdrop"></div>
+     <div class="relative min-h-full flex items-center justify-center p-4">
+      <div id="admin-panel" class="rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90%] overflow-y-auto">
+       <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+         <h2 id="admin-title" class="font-bold text-xl">⚙️ จัดการเนื้อหา</h2><button id="btn-close-modal" class="text-3xl hover:scale-110 transition-transform">×</button>
+        </div><!-- Add Content Form -->
+        <form id="add-content-form" class="space-y-3 mb-6">
+         <div><label for="content-type" id="label-type" class="block font-semibold mb-1 text-sm">ประเภทเนื้อหา</label> <select id="content-type" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm"> <option value="video">📹 วิดีโอ</option> <option value="document">📄 เอกสาร</option> <option value="mindmap">🗺️ มายแมพ</option> </select>
+         </div>
+         <div><label for="content-title" id="label-title" class="block font-semibold mb-1 text-sm">ชื่อเรื่อง</label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่อง" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
+         </div>
+         <div><label for="content-description" id="label-desc" class="block font-semibold mb-1 text-sm">คำอธิบาย</label> <textarea id="content-description" placeholder="ใส่คำอธิบาย" rows="2" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required></textarea>
+         </div>
+         <div><label for="content-url" id="label-url" class="block font-semibold mb-1 text-sm">ลิงก์ (URL)</label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
+          <p id="url-hint" class="text-xs mt-1 opacity-70">สำหรับวิดีโอ: ใส่ลิงก์ YouTube</p>
+         </div>
+         <div><label for="content-image" id="label-image" class="block font-semibold mb-1 text-sm">ลิงก์รูปภาพ (ไม่บังคับ)</label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm">
+         </div><button type="submit" id="btn-submit" class="w-full py-3 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-sm"> <span id="submit-text">➕ เพิ่มเนื้อหา</span>
+          <div id="submit-spinner" class="spinner hidden"></div></button>
+        </form><!-- Content List -->
+        <div>
+         <h3 id="manage-title" class="font-semibold mb-3 text-base">รายการเนื้อหาทั้งหมด</h3>
+         <div id="admin-content-list" class="space-y-2 max-h-80 overflow-y-auto"><!-- Content items will be loaded here -->
+         </div>
+         <div id="admin-empty" class="text-center py-8 opacity-70 hidden">
+          ยังไม่มีเนื้อหา
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- View Content Modal -->
+    <div id="view-modal" class="fixed inset-0 z-50 hidden">
+     <div class="modal-backdrop absolute inset-0" id="view-backdrop"></div>
+     <div class="relative min-h-full flex items-center justify-center p-4">
+      <div id="view-panel" class="rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90%] overflow-y-auto">
+       <div class="p-8">
+        <div class="flex justify-between items-center mb-6">
+         <h2 id="view-title" class="font-bold"></h2><button id="btn-close-view" class="text-3xl hover:scale-110 transition-transform">×</button>
+        </div>
+        <div id="view-content"></div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#f8fafc",
+      surface_color: "#ffffff",
+      text_color: "#1e293b",
+      primary_color: "#8b5cf6",
+      secondary_color: "#64748b",
+      font_family: "Inter",
+      font_size: 16,
+      site_title: "🎓 แพลตฟอร์มการเรียนรู้",
+      site_subtitle: "จัดการและแชร์เนื้อหาการเรียนรู้ของคุณ"
+    };
+
+    let allContent = [];
+    let currentSection = 'video';
+    let isLoggedIn = false;
+
+    // Login System
+    function handleLogin(username, password) {
+      // Demo authentication for learning platform
+      const validUsers = {
+        'admin': 'admin123',
+        'teacher': 'teacher123',
+        'student': 'student123'
+      };
+      
+      if (validUsers[username] && validUsers[username] === password) {
+        isLoggedIn = true;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        document.getElementById('login-error').classList.add('hidden');
+        return true;
+      } else {
+        document.getElementById('login-error').classList.remove('hidden');
+        return false;
+      }
+    }
+
+    function handleLogout() {
+      isLoggedIn = false;
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('login-form').reset();
+    }
+
+    async function onConfigChange(config) {
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+      
+      document.body.style.backgroundColor = backgroundColor;
+      
+      const siteTitle = document.getElementById('site-title');
+      siteTitle.textContent = config.site_title || defaultConfig.site_title;
+      siteTitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      siteTitle.style.fontSize = `${baseSize * 2.5}px`;
+      
+      const siteSubtitle = document.getElementById('site-subtitle');
+      siteSubtitle.textContent = config.site_subtitle || defaultConfig.site_subtitle;
+      siteSubtitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      siteSubtitle.style.fontSize = `${baseSize * 1.1}px`;
+
+      // Style all text elements
+      // Style login screen
+      const loginBox = document.getElementById('login-box');
+      loginBox.style.backgroundColor = surfaceColor;
+
+      const loginTitle = document.getElementById('login-title');
+      loginTitle.style.color = textColor;
+      loginTitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      loginTitle.style.fontSize = `${baseSize * 1.8}px`;
+
+      const loginSubtitle = document.getElementById('login-subtitle');
+      loginSubtitle.style.color = textColor;
+      loginSubtitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      loginSubtitle.style.fontSize = `${baseSize}px`;
+
+      const labelUsername = document.getElementById('label-username');
+      labelUsername.style.color = textColor;
+      labelUsername.style.fontFamily = `${customFont}, ${baseFontStack}`;
+
+      const labelPassword = document.getElementById('label-password');
+      labelPassword.style.color = textColor;
+      labelPassword.style.fontFamily = `${customFont}, ${baseFontStack}`;
+
+      const demoHint = document.getElementById('demo-hint');
+      demoHint.style.color = textColor;
+      demoHint.style.fontFamily = `${customFont}, ${baseFontStack}`;
+
+      const btnLogin = document.getElementById('btn-login');
+      btnLogin.style.backgroundColor = primaryColor;
+      btnLogin.style.color = '#ffffff';
+      btnLogin.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      btnLogin.style.fontSize = `${baseSize}px`;
+
+      const textElements = [
+        'empty-video-text', 'empty-video-desc', 'empty-doc-text', 'empty-doc-desc',
+        'empty-mindmap-text', 'empty-mindmap-desc', 'admin-title', 'label-type',
+        'label-title', 'label-desc', 'label-url', 'url-hint', 'label-image',
+        'submit-text', 'manage-title', 'view-title'
+      ];
+      
+      textElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.color = textColor;
+          el.style.fontFamily = `${customFont}, ${baseFontStack}`;
+        }
+      });
+
+      // Style headings
+      document.getElementById('admin-title').style.fontSize = `${baseSize * 1.8}px`;
+      document.getElementById('manage-title').style.fontSize = `${baseSize * 1.3}px`;
+      document.getElementById('empty-video-text').style.fontSize = `${baseSize * 1.3}px`;
+      document.getElementById('empty-doc-text').style.fontSize = `${baseSize * 1.3}px`;
+      document.getElementById('empty-mindmap-text').style.fontSize = `${baseSize * 1.3}px`;
+
+      // Style panels
+      document.getElementById('admin-panel').style.backgroundColor = surfaceColor;
+      document.getElementById('view-panel').style.backgroundColor = surfaceColor;
+
+      // Style form inputs
+      const inputs = document.querySelectorAll('input, textarea, select');
+      inputs.forEach(input => {
+        input.style.backgroundColor = backgroundColor;
+        input.style.color = textColor;
+        input.style.borderColor = secondaryColor;
+        input.style.fontFamily = `${customFont}, ${baseFontStack}`;
+        input.style.fontSize = `${baseSize}px`;
+      });
+
+      // Style submit button
+      const submitBtn = document.getElementById('btn-submit');
+      submitBtn.style.backgroundColor = primaryColor;
+      submitBtn.style.color = '#ffffff';
+      submitBtn.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      submitBtn.style.fontSize = `${baseSize * 1.1}px`;
+
+      // Re-render content with new styles
+      renderContent();
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.surface_color || defaultConfig.surface_color,
+            set: (value) => {
+              config.surface_color = value;
+              window.elementSdk.setConfig({ surface_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            config.font_family = value;
+            window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => {
+            config.font_size = value;
+            window.elementSdk.setConfig({ font_size: value });
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["site_title", config.site_title || defaultConfig.site_title],
+        ["site_subtitle", config.site_subtitle || defaultConfig.site_subtitle]
+      ]);
+    }
+
+    // Data SDK Handler
+    const dataHandler = {
+      onDataChanged(data) {
+        allContent = data;
+        renderContent();
+        renderAdminList();
+      }
+    };
+
+    function getYouTubeEmbedUrl(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+    }
+
+    function renderContent() {
+      const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+
+      // Render videos
+      const videoList = document.getElementById('video-list');
+      const videoEmpty = document.getElementById('video-empty');
+      const videos = allContent.filter(item => item.type === 'video');
+      
+      if (videos.length === 0) {
+        videoList.innerHTML = '';
+        videoEmpty.classList.remove('hidden');
+        videoEmpty.style.color = textColor;
+      } else {
+        videoEmpty.classList.add('hidden');
+        videoList.innerHTML = videos.map(item => {
+          return `
+            <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${item.__backendId}')">
+              ${item.imageUrl ? `
+                <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+              ` : `
+                <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${primaryColor}40, ${primaryColor}80);">
+                  <div class="text-center">
+                    <div class="text-6xl mb-2">📹</div>
+                    <div class="text-sm font-semibold px-4" style="color: ${textColor};">คลิกเพื่อดูวิดีโอ</div>
+                  </div>
+                </div>
+              `}
+              <div class="p-6">
+                <h3 class="font-bold mb-2" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.2}px;">${item.title}</h3>
+                <p class="line-clamp-2" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 0.9}px;">${item.description}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render documents
+      const documentList = document.getElementById('document-list');
+      const documentEmpty = document.getElementById('document-empty');
+      const documents = allContent.filter(item => item.type === 'document');
+      
+      if (documents.length === 0) {
+        documentList.innerHTML = '';
+        documentEmpty.classList.remove('hidden');
+        documentEmpty.style.color = textColor;
+      } else {
+        documentEmpty.classList.add('hidden');
+        documentList.innerHTML = documents.map(item => `
+          <div class="card-hover rounded-xl p-6 shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${item.__backendId}')">
+            <div class="flex items-start gap-4">
+              ${item.imageUrl ? `
+                <img src="${item.imageUrl}" alt="${item.title}" class="w-24 h-24 rounded-lg object-cover flex-shrink-0" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+              ` : `
+                <div class="w-24 h-24 rounded-lg flex items-center justify-center text-4xl flex-shrink-0" style="background-color: ${primaryColor}20;">📄</div>
+              `}
+              <div class="flex-1">
+                <h3 class="font-bold mb-2" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.2}px;">${item.title}</h3>
+                <p class="line-clamp-3" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 0.9}px;">${item.description}</p>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Render mindmaps
+      const mindmapList = document.getElementById('mindmap-list');
+      const mindmapEmpty = document.getElementById('mindmap-empty');
+      const mindmaps = allContent.filter(item => item.type === 'mindmap');
+      
+      if (mindmaps.length === 0) {
+        mindmapList.innerHTML = '';
+        mindmapEmpty.classList.remove('hidden');
+        mindmapEmpty.style.color = textColor;
+      } else {
+        mindmapEmpty.classList.add('hidden');
+        mindmapList.innerHTML = mindmaps.map(item => `
+          <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${item.__backendId}')">
+            ${item.imageUrl ? `
+              <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+            ` : `
+              <div class="w-full h-48 flex items-center justify-center text-6xl" style="background-color: ${primaryColor}20;">🗺️</div>
+            `}
+            <div class="p-6">
+              <h3 class="font-bold mb-2" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.2}px;">${item.title}</h3>
+              <p class="line-clamp-2" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 0.9}px;">${item.description}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderAdminList() {
+      const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+
+      const adminList = document.getElementById('admin-content-list');
+      const adminEmpty = document.getElementById('admin-empty');
+
+      if (allContent.length === 0) {
+        adminList.innerHTML = '';
+        adminEmpty.classList.remove('hidden');
+        adminEmpty.style.color = textColor;
+      } else {
+        adminEmpty.classList.add('hidden');
+        adminList.innerHTML = allContent.map(item => {
+          const typeIcon = item.type === 'video' ? '📹' : item.type === 'document' ? '📄' : '🗺️';
+          return `
+            <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: ${backgroundColor};">
+              <div class="flex-1">
+                <div class="font-semibold text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${typeIcon} ${item.title}</div>
+                <div class="text-xs opacity-70" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.type}</div>
+              </div>
+              <button onclick="deleteContent('${item.__backendId}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:scale-105 transition-transform" style="background-color: #ef4444; color: white; font-family: ${customFont}, ${baseFontStack};">
+                🗑️ ลบ
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function switchSection(sectionName) {
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+      });
+
+      document.getElementById(`section-${sectionName}`).classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`btn-${sectionName}`);
+      activeBtn.classList.add('active');
+      activeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+      activeBtn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+
+      currentSection = sectionName;
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    async function deleteContent(backendId) {
+      const item = allContent.find(c => c.__backendId === backendId);
+      if (!item) return;
+
+      const result = await window.dataSdk.delete(item);
+      if (result.isOk) {
+        showToast('ลบเนื้อหาสำเร็จ!', 'success');
+      } else {
+        showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+      }
+    }
+
+    function viewContent(backendId) {
+      const item = allContent.find(c => c.__backendId === backendId);
+      if (!item) return;
+
+      const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+
+      const viewTitle = document.getElementById('view-title');
+      viewTitle.textContent = item.title;
+      viewTitle.style.color = primaryColor;
+      viewTitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      viewTitle.style.fontSize = `${baseSize * 1.8}px`;
+
+      const viewContent = document.getElementById('view-content');
+      
+      if (item.type === 'video') {
+        viewContent.innerHTML = `
+          <div class="space-y-6">
+            <div class="rounded-xl p-12 text-center" style="background: linear-gradient(135deg, ${primaryColor}20, ${primaryColor}40);">
+              <div class="text-8xl mb-4">🎬</div>
+              <h3 class="text-2xl font-bold mb-4" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">พร้อมดูวิดีโอแล้ว!</h3>
+              <p class="mb-6 text-lg" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">คลิกปุ่มด้านล่างเพื่อเปิดวิดีโอใน YouTube</p>
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-block px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-lg" style="background-color: ${primaryColor}; color: white; font-family: ${customFont}, ${baseFontStack};">
+                ▶️ เปิดดูวิดีโอ YouTube
+              </a>
+            </div>
+            <div class="p-6 rounded-xl" style="background-color: ${config.background_color || defaultConfig.background_color};">
+              <h4 class="font-bold mb-2 text-lg" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">เกี่ยวกับวิดีโอนี้</h4>
+              <p style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">${item.description}</p>
+            </div>
+          </div>
+        `;
+      } else {
+        viewContent.innerHTML = `
+          <div class="space-y-4">
+            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.title}" class="w-full rounded-xl" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">` : ''}
+            <p style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">${item.description}</p>
+            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 rounded-lg font-semibold" style="background-color: ${primaryColor}; color: white; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">🔗 เปิดลิงก์ต้นฉบับ</a>
+          </div>
+        `;
+      }
+
+      document.getElementById('view-modal').classList.remove('hidden');
+    }
+
+    // Event Listeners
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      handleLogin(username, password);
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      handleLogout();
+    });
+
+    document.getElementById('btn-video').addEventListener('click', () => switchSection('video'));
+    document.getElementById('btn-document').addEventListener('click', () => switchSection('document'));
+    document.getElementById('btn-mindmap').addEventListener('click', () => switchSection('mindmap'));
+
+    document.getElementById('btn-admin').addEventListener('click', () => {
+      document.getElementById('admin-modal').classList.remove('hidden');
+    });
+
+    document.getElementById('btn-close-modal').addEventListener('click', () => {
+      document.getElementById('admin-modal').classList.add('hidden');
+    });
+
+    document.getElementById('modal-backdrop').addEventListener('click', () => {
+      document.getElementById('admin-modal').classList.add('hidden');
+    });
+
+    document.getElementById('btn-close-view').addEventListener('click', () => {
+      document.getElementById('view-modal').classList.add('hidden');
+    });
+
+    document.getElementById('view-backdrop').addEventListener('click', () => {
+      document.getElementById('view-modal').classList.add('hidden');
+    });
+
+    document.getElementById('add-content-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (allContent.length >= 999) {
+        showToast('ถึงขีดจำกัด 999 รายการแล้ว กรุณาลบรายการเก่าก่อน', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-submit');
+      const submitText = document.getElementById('submit-text');
+      const submitSpinner = document.getElementById('submit-spinner');
+
+      submitBtn.disabled = true;
+      submitText.classList.add('hidden');
+      submitSpinner.classList.remove('hidden');
+
+      const newContent = {
+        id: Date.now().toString(),
+        type: document.getElementById('content-type').value,
+        title: document.getElementById('content-title').value,
+        description: document.getElementById('content-description').value,
+        url: document.getElementById('content-url').value,
+        imageUrl: document.getElementById('content-image').value,
+        createdAt: new Date().toISOString()
+      };
+
+      const result = await window.dataSdk.create(newContent);
+
+      submitBtn.disabled = false;
+      submitText.classList.remove('hidden');
+      submitSpinner.classList.add('hidden');
+
+      if (result.isOk) {
+        showToast('เพิ่มเนื้อหาสำเร็จ!', 'success');
+        document.getElementById('add-content-form').reset();
+      } else {
+        showToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+      }
+    });
+
+    window.viewContent = viewContent;
+    window.deleteContent = deleteContent;
+
+    // Initialize
+    async function init() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error('Failed to initialize Data SDK');
+        }
+      }
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c5d4b7b22e4b59',t:'MTc2Mjc4MDY1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
