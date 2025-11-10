@@ -156,15 +156,56 @@
         </div><button id="btn-logout" class="px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30 text-sm hover:bg-opacity-30"> 🚪 ออกจากระบบ </button>
        </div>
       </div><!-- Navigation -->
-      <nav class="flex justify-center gap-3 flex-wrap mb-6"><button id="btn-video" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 active bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30"> 📹 วิดีโอ </button> <button id="btn-document" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📄 เอกสาร </button> <button id="btn-mindmap" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 🗺️ มายแมพ </button>
+      <nav class="flex justify-center gap-3 flex-wrap mb-6"><button id="btn-home" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 active bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30"> 🏠 หน้าหลัก </button> <button id="btn-video" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📹 วิดีโอ </button> <button id="btn-document" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📄 เอกสาร </button> <button id="btn-mindmap" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 🗺️ มายแมพ </button> <button id="btn-quiz" class="nav-btn px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-105 bg-white bg-opacity-10 backdrop-blur-sm text-white border-2 border-white border-opacity-20"> 📝 แบบทดสอบ </button>
       </nav><!-- Admin Button -->
       <div class="text-center"><button id="btn-admin" class="px-8 py-3 rounded-full font-bold transition-all duration-200 hover:scale-105 shadow-lg bg-white text-purple-700 hover:shadow-xl"> ⚙️ จัดการเนื้อหา </button>
       </div>
      </div>
     </header>
     <main class="flex-1 px-6 py-8">
-     <div class="max-w-7xl mx-auto"><!-- Video Section -->
-      <div id="section-video" class="content-section">
+     <div class="max-w-7xl mx-auto"><!-- Home Section -->
+      <div id="section-home" class="content-section"><!-- Hero Banner -->
+       <div class="rounded-2xl p-12 mb-8 text-center gradient-bg shadow-2xl">
+        <div class="text-7xl mb-4">
+         👑
+        </div>
+        <h2 id="home-title" class="font-bold text-white mb-4" style="font-size: 2.5rem;">ยินดีต้อนรับสู่ THE ONE สอบราชการ</h2>
+        <p id="home-subtitle" class="text-white text-xl opacity-90 mb-6">แพลตฟอร์มการเรียนรู้ออนไลน์ที่ครบครันสำหรับผู้เตรียมสอบราชการ</p>
+        <div class="flex justify-center gap-4 flex-wrap"><button onclick="switchSection('video')" class="px-8 py-3 rounded-full font-bold bg-white text-purple-700 hover:scale-105 transition-transform shadow-lg"> 📹 เริ่มเรียนเลย </button> <button onclick="switchSection('quiz')" class="px-8 py-3 rounded-full font-bold bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white hover:scale-105 transition-transform"> 📝 ทำแบบทดสอบ </button>
+        </div>
+       </div><!-- Featured Content Sections -->
+       <div class="space-y-12"><!-- Featured Videos -->
+        <div>
+         <div class="flex justify-between items-center mb-6">
+          <h3 id="featured-video-title" class="font-bold text-2xl">📹 วิดีโอแนะนำ</h3><button onclick="switchSection('video')" id="view-all-videos" class="text-sm font-semibold hover:underline">ดูทั้งหมด →</button>
+         </div>
+         <div id="home-video-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Featured videos will be loaded here -->
+         </div>
+        </div><!-- Featured Documents -->
+        <div>
+         <div class="flex justify-between items-center mb-6">
+          <h3 id="featured-doc-title" class="font-bold text-2xl">📄 เอกสารแนะนำ</h3><button onclick="switchSection('document')" id="view-all-docs" class="text-sm font-semibold hover:underline">ดูทั้งหมด →</button>
+         </div>
+         <div id="home-document-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"><!-- Featured documents will be loaded here -->
+         </div>
+        </div><!-- Featured Mindmaps -->
+        <div>
+         <div class="flex justify-between items-center mb-6">
+          <h3 id="featured-mindmap-title" class="font-bold text-2xl">🗺️ มายแมพแนะนำ</h3><button onclick="switchSection('mindmap')" id="view-all-mindmaps" class="text-sm font-semibold hover:underline">ดูทั้งหมด →</button>
+         </div>
+         <div id="home-mindmap-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Featured mindmaps will be loaded here -->
+         </div>
+        </div><!-- Featured Quizzes -->
+        <div>
+         <div class="flex justify-between items-center mb-6">
+          <h3 id="featured-quiz-title" class="font-bold text-2xl">📝 แบบทดสอบแนะนำ</h3><button onclick="switchSection('quiz')" id="view-all-quizzes" class="text-sm font-semibold hover:underline">ดูทั้งหมด →</button>
+         </div>
+         <div id="home-quiz-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Featured quizzes will be loaded here -->
+         </div>
+        </div>
+       </div>
+      </div><!-- Video Section -->
+      <div id="section-video" class="content-section hidden">
        <div id="video-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Videos will be loaded here -->
        </div>
        <div id="video-empty" class="text-center py-16 hidden">
@@ -196,6 +237,17 @@
         <p id="empty-mindmap-text" class="text-xl font-semibold mb-2">ยังไม่มีมายแมพ</p>
         <p id="empty-mindmap-desc" class="opacity-70">คลิก "จัดการเนื้อหา" เพื่อเพิ่มมายแมพแรกของคุณ</p>
        </div>
+      </div><!-- Quiz Section -->
+      <div id="section-quiz" class="content-section hidden">
+       <div id="quiz-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Quizzes will be loaded here -->
+       </div>
+       <div id="quiz-empty" class="text-center py-16 hidden">
+        <div class="text-6xl mb-4">
+         📝
+        </div>
+        <p id="empty-quiz-text" class="text-xl font-semibold mb-2">ยังไม่มีแบบทดสอบ</p>
+        <p id="empty-quiz-desc" class="opacity-70">คลิก "จัดการเนื้อหา" เพื่อเพิ่มแบบทดสอบแรกของคุณ</p>
+       </div>
       </div>
      </div>
     </main><!-- Admin Modal -->
@@ -208,7 +260,7 @@
          <h2 id="admin-title" class="font-bold text-xl">⚙️ จัดการเนื้อหา</h2><button id="btn-close-modal" class="text-3xl hover:scale-110 transition-transform">×</button>
         </div><!-- Add Content Form -->
         <form id="add-content-form" class="space-y-3 mb-6">
-         <div><label for="content-type" id="label-type" class="block font-semibold mb-1 text-sm">ประเภทเนื้อหา</label> <select id="content-type" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm"> <option value="video">📹 วิดีโอ</option> <option value="document">📄 เอกสาร</option> <option value="mindmap">🗺️ มายแมพ</option> </select>
+         <div><label for="content-type" id="label-type" class="block font-semibold mb-1 text-sm">ประเภทเนื้อหา</label> <select id="content-type" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm"> <option value="video">📹 วิดีโอ</option> <option value="document">📄 เอกสาร</option> <option value="mindmap">🗺️ มายแมพ</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
          </div>
          <div><label for="content-title" id="label-title" class="block font-semibold mb-1 text-sm">ชื่อเรื่อง</label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่อง" class="w-full px-3 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm" required>
          </div>
@@ -330,7 +382,7 @@
     };
 
     let allContent = [];
-    let currentSection = 'video';
+    let currentSection = 'home';
     let isLoggedIn = false;
     let unsubscribeFirestore = null;
 
@@ -736,6 +788,9 @@
       const baseSize = config.font_size || defaultConfig.font_size;
       const baseFontStack = 'system-ui, -apple-system, sans-serif';
 
+      // Render home page featured content
+      renderHomeContent(config, surfaceColor, textColor, primaryColor, customFont, baseSize, baseFontStack);
+
       // Render videos
       const videoList = document.getElementById('video-list');
       const videoEmpty = document.getElementById('video-empty');
@@ -857,6 +912,167 @@
         `;
         }).join('');
       }
+
+      // Render quizzes
+      const quizList = document.getElementById('quiz-list');
+      const quizEmpty = document.getElementById('quiz-empty');
+      const quizzes = allContent.filter(item => item.type === 'quiz');
+      
+      if (quizzes.length === 0) {
+        quizList.innerHTML = '';
+        quizEmpty.classList.remove('hidden');
+        quizEmpty.style.color = textColor;
+      } else {
+        quizEmpty.classList.add('hidden');
+        quizList.innerHTML = quizzes.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          return `
+          <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
+            ${item.imageUrl ? `
+              <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+            ` : `
+              <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${primaryColor}40, ${primaryColor}80);">
+                <div class="text-center">
+                  <div class="text-6xl mb-2">📝</div>
+                  <div class="text-sm font-semibold px-4" style="color: ${textColor};">คลิกเพื่อทำแบบทดสอบ</div>
+                </div>
+              </div>
+            `}
+            <div class="p-6">
+              <h3 class="font-bold mb-2" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.2}px;">${item.title}</h3>
+              <p class="line-clamp-2 mb-3" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 0.9}px;">${item.description}</p>
+              <div class="flex items-center gap-2 text-xs" style="color: ${textColor}; opacity: 0.7;">
+                <span>✏️ เริ่มทำแบบทดสอบ</span>
+              </div>
+            </div>
+          </div>
+        `;
+        }).join('');
+      }
+    }
+
+    function renderHomeContent(config, surfaceColor, textColor, primaryColor, customFont, baseSize, baseFontStack) {
+      // Get featured content (max 3 items each)
+      const featuredVideos = allContent.filter(item => item.type === 'video').slice(0, 3);
+      const featuredDocs = allContent.filter(item => item.type === 'document').slice(0, 2);
+      const featuredMindmaps = allContent.filter(item => item.type === 'mindmap').slice(0, 3);
+      const featuredQuizzes = allContent.filter(item => item.type === 'quiz').slice(0, 3);
+
+      // Render featured videos
+      const homeVideoList = document.getElementById('home-video-list');
+      if (featuredVideos.length === 0) {
+        homeVideoList.innerHTML = `<div class="col-span-full text-center py-8 opacity-70" style="color: ${textColor};">ยังไม่มีวิดีโอ</div>`;
+      } else {
+        homeVideoList.innerHTML = featuredVideos.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          let thumbnailUrl = item.imageUrl;
+          if (!thumbnailUrl && item.url) {
+            const embedUrl = getYouTubeEmbedUrl(item.url);
+            if (embedUrl) {
+              const videoId = embedUrl.split('/').pop();
+              thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            }
+          }
+          
+          return `
+            <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
+              <div class="relative">
+                ${thumbnailUrl ? `
+                  <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/${item.url.includes('youtube.com') || item.url.includes('youtu.be') ? getYouTubeEmbedUrl(item.url)?.split('/').pop() : ''}/hqdefault.jpg';">
+                ` : `
+                  <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${primaryColor}40, ${primaryColor}80);">
+                    <div class="text-6xl">📹</div>
+                  </div>
+                `}
+                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300">
+                  <div class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
+                    <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="font-bold mb-1 line-clamp-2" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.1}px;">${item.title}</h3>
+                <p class="line-clamp-2 text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render featured documents
+      const homeDocList = document.getElementById('home-document-list');
+      if (featuredDocs.length === 0) {
+        homeDocList.innerHTML = `<div class="col-span-full text-center py-8 opacity-70" style="color: ${textColor};">ยังไม่มีเอกสาร</div>`;
+      } else {
+        homeDocList.innerHTML = featuredDocs.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          return `
+            <div class="card-hover rounded-xl p-4 shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
+              <div class="flex items-start gap-3">
+                ${item.imageUrl ? `
+                  <img src="${item.imageUrl}" alt="${item.title}" class="w-20 h-20 rounded-lg object-cover flex-shrink-0" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+                ` : `
+                  <div class="w-20 h-20 rounded-lg flex items-center justify-center text-3xl flex-shrink-0" style="background-color: ${primaryColor}20;">📄</div>
+                `}
+                <div class="flex-1">
+                  <h3 class="font-bold mb-1" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.1}px;">${item.title}</h3>
+                  <p class="line-clamp-2 text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render featured mindmaps
+      const homeMindmapList = document.getElementById('home-mindmap-list');
+      if (featuredMindmaps.length === 0) {
+        homeMindmapList.innerHTML = `<div class="col-span-full text-center py-8 opacity-70" style="color: ${textColor};">ยังไม่มีมายแมพ</div>`;
+      } else {
+        homeMindmapList.innerHTML = featuredMindmaps.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          return `
+            <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
+              ${item.imageUrl ? `
+                <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-40 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+              ` : `
+                <div class="w-full h-40 flex items-center justify-center text-5xl" style="background-color: ${primaryColor}20;">🗺️</div>
+              `}
+              <div class="p-4">
+                <h3 class="font-bold mb-1" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.1}px;">${item.title}</h3>
+                <p class="line-clamp-2 text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render featured quizzes
+      const homeQuizList = document.getElementById('home-quiz-list');
+      if (featuredQuizzes.length === 0) {
+        homeQuizList.innerHTML = `<div class="col-span-full text-center py-8 opacity-70" style="color: ${textColor};">ยังไม่มีแบบทดสอบ</div>`;
+      } else {
+        homeQuizList.innerHTML = featuredQuizzes.map(item => {
+          const itemId = item.firebaseId || item.__backendId || item.id;
+          return `
+            <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
+              ${item.imageUrl ? `
+                <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-40 object-cover" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';">
+              ` : `
+                <div class="w-full h-40 flex items-center justify-center" style="background: linear-gradient(135deg, ${primaryColor}40, ${primaryColor}80);">
+                  <div class="text-5xl">📝</div>
+                </div>
+              `}
+              <div class="p-4">
+                <h3 class="font-bold mb-1" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 1.1}px;">${item.title}</h3>
+                <p class="line-clamp-2 text-sm" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
     }
 
     function renderAdminList() {
@@ -879,7 +1095,7 @@
       } else {
         adminEmpty.classList.add('hidden');
         adminList.innerHTML = allContent.map(item => {
-          const typeIcon = item.type === 'video' ? '📹' : item.type === 'document' ? '📄' : '🗺️';
+          const typeIcon = item.type === 'video' ? '📹' : item.type === 'document' ? '📄' : item.type === 'mindmap' ? '🗺️' : '📝';
           const itemId = item.firebaseId || item.__backendId || item.id;
           return `
             <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: ${backgroundColor};">
@@ -1091,9 +1307,11 @@
       handleLogout();
     });
 
+    document.getElementById('btn-home').addEventListener('click', () => switchSection('home'));
     document.getElementById('btn-video').addEventListener('click', () => switchSection('video'));
     document.getElementById('btn-document').addEventListener('click', () => switchSection('document'));
     document.getElementById('btn-mindmap').addEventListener('click', () => switchSection('mindmap'));
+    document.getElementById('btn-quiz').addEventListener('click', () => switchSection('quiz'));
 
     document.getElementById('btn-admin').addEventListener('click', () => {
       document.getElementById('admin-modal').classList.remove('hidden');
@@ -1230,5 +1448,5 @@
 
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6a2f3a21045b7',t:'MTc2Mjc4OTEwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6b30373dc45b7',t:'MTc2Mjc4OTc2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
