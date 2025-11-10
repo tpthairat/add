@@ -250,9 +250,9 @@
      </div>
     </main><!-- Admin Modal -->
     <div id="admin-modal" class="fixed inset-0 z-50 hidden">
-     <div class="modal-backdrop absolute inset-0" id="modal-backdrop"></div>
+     <div class="absolute inset-0 bg-black bg-opacity-60" id="modal-backdrop"></div>
      <div class="relative min-h-full flex items-center justify-center p-4">
-      <div id="admin-panel" class="rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90%] overflow-y-auto">
+      <div id="admin-panel" class="rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90%] overflow-y-auto bg-white">
        <div class="p-8"><!-- Header -->
         <div class="flex justify-between items-center mb-8">
          <div class="flex items-center gap-4">
@@ -267,50 +267,50 @@
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><!-- Left Column: Add Content Form -->
          <div>
-          <div class="rounded-xl p-6 shadow-lg border-2" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(236, 72, 153, 0.05));">
+          <div class="rounded-xl p-6 shadow-lg border-2 bg-gradient-to-br from-purple-50 to-pink-50" style="border-color: #e9d5ff;">
            <div class="flex items-center gap-3 mb-6">
             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl shadow">
              ➕
             </div>
-            <h3 id="form-title" class="font-bold text-xl">เพิ่มเนื้อหาใหม่</h3>
+            <h3 id="form-title" class="font-bold text-xl text-purple-900">เพิ่มเนื้อหาใหม่</h3>
            </div>
            <form id="add-content-form" class="space-y-4">
-            <div><label for="content-type" id="label-type" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>📂</span> ประเภทเนื้อหา </label> <select id="content-type" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm font-semibold shadow-sm"> <option value="video">📹 วิดีโอบทเรียน</option> <option value="document">📄 เอกสารประกอบ</option> <option value="mindmap">🗺️ มายแมพความรู้</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
+            <div><label for="content-type" id="label-type" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>📂</span> ประเภทเนื้อหา </label> <select id="content-type" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-semibold shadow-sm bg-white text-gray-900"> <option value="video">📹 วิดีโอบทเรียน (YouTube / Google Drive)</option> <option value="document">📄 เอกสารประกอบ</option> <option value="mindmap">🗺️ มายแมพความรู้</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
             </div>
-            <div><label for="content-title" id="label-title" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>✏️</span> ชื่อเรื่อง </label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่องที่น่าสนใจ" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm" required>
+            <div><label for="content-title" id="label-title" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>✏️</span> ชื่อเรื่อง </label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่องที่น่าสนใจ" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required>
             </div>
-            <div><label for="content-description" id="label-desc" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>📝</span> คำอธิบาย </label> <textarea id="content-description" placeholder="อธิบายรายละเอียดเนื้อหา" rows="3" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm" required></textarea>
+            <div><label for="content-description" id="label-desc" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>📝</span> คำอธิบาย </label> <textarea id="content-description" placeholder="อธิบายรายละเอียดเนื้อหา" rows="3" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required></textarea>
             </div>
-            <div><label for="content-url" id="label-url" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>🔗</span> ลิงก์เนื้อหา </label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm" required>
-             <p id="url-hint" class="text-xs mt-2 opacity-70 flex items-center gap-1"><span>💡</span> สำหรับวิดีโอ: ใส่ลิงก์ YouTube</p>
+            <div><label for="content-url" id="label-url" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>🔗</span> ลิงก์เนื้อหา </label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required>
+             <p id="url-hint" class="text-xs mt-2 text-purple-700 flex items-center gap-1"><span>💡</span> สำหรับวิดีโอ: ใส่ลิงก์ YouTube หรือ Google Drive</p>
             </div>
-            <div><label for="content-image" id="label-image" class="block font-semibold mb-2 text-sm flex items-center gap-2"> <span>🖼️</span> ลิงก์รูปภาพ <span class="text-xs opacity-60">(ไม่บังคับ)</span> </label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 text-sm shadow-sm">
+            <div><label for="content-image" id="label-image" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>🖼️</span> ลิงก์รูปภาพ <span class="text-xs text-purple-600">(ไม่บังคับ)</span> </label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900">
             </div><button type="submit" id="btn-submit" class="w-full py-4 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-base bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl"> <span id="submit-text">➕ เพิ่มเนื้อหา</span>
              <div id="submit-spinner" class="spinner hidden"></div></button>
            </form>
           </div>
          </div><!-- Right Column: Content List -->
          <div>
-          <div class="rounded-xl p-6 shadow-lg border-2">
+          <div class="rounded-xl p-6 shadow-lg border-2 bg-gradient-to-br from-blue-50 to-cyan-50" style="border-color: #dbeafe;">
            <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-3">
              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl shadow">
               📋
              </div>
              <div>
-              <h3 id="manage-title" class="font-bold text-xl">รายการเนื้อหา</h3>
-              <p id="content-count" class="text-xs opacity-70">ทั้งหมด 0 รายการ</p>
+              <h3 id="manage-title" class="font-bold text-xl text-blue-900">รายการเนื้อหา</h3>
+              <p id="content-count" class="text-xs text-blue-700">ทั้งหมด 0 รายการ</p>
              </div>
             </div>
            </div>
            <div id="admin-content-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"><!-- Content items will be loaded here -->
            </div>
-           <div id="admin-empty" class="text-center py-16 opacity-70 hidden">
+           <div id="admin-empty" class="text-center py-16 hidden">
             <div class="text-6xl mb-4">
              📭
             </div>
-            <p class="text-lg font-semibold">ยังไม่มีเนื้อหา</p>
-            <p class="text-sm mt-2">เริ่มเพิ่มเนื้อหาแรกของคุณได้เลย!</p>
+            <p class="text-lg font-semibold text-blue-900">ยังไม่มีเนื้อหา</p>
+            <p class="text-sm mt-2 text-blue-700">เริ่มเพิ่มเนื้อหาแรกของคุณได้เลย!</p>
            </div>
           </div>
          </div>
@@ -815,6 +815,47 @@
       return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
     }
 
+    function getGoogleDriveVideoEmbedUrl(url) {
+      // Check if it's a Google Drive link
+      if (url.includes('drive.google.com')) {
+        // Extract file ID from various Google Drive URL formats
+        let fileId = null;
+        
+        // Format: https://drive.google.com/file/d/FILE_ID/view
+        const match1 = url.match(/\/file\/d\/([^/]+)/);
+        if (match1) {
+          fileId = match1[1];
+        }
+        
+        // Format: https://drive.google.com/open?id=FILE_ID
+        const match2 = url.match(/[?&]id=([^&]+)/);
+        if (match2) {
+          fileId = match2[1];
+        }
+        
+        if (fileId) {
+          return `https://drive.google.com/file/d/${fileId}/preview`;
+        }
+      }
+      return null;
+    }
+
+    function getVideoThumbnail(url) {
+      // YouTube thumbnail
+      const youtubeEmbed = getYouTubeEmbedUrl(url);
+      if (youtubeEmbed) {
+        const videoId = youtubeEmbed.split('/').pop();
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      }
+      
+      // Google Drive - use generic video icon
+      if (url.includes('drive.google.com')) {
+        return null; // Will show icon instead
+      }
+      
+      return null;
+    }
+
     function renderContent() {
       const config = window.elementSdk ? window.elementSdk.config : defaultConfig;
       const surfaceColor = config.surface_color || defaultConfig.surface_color;
@@ -841,15 +882,14 @@
         videoList.innerHTML = videos.map(item => {
           const itemId = item.firebaseId || item.__backendId || item.id;
           
-          // Get YouTube thumbnail
+          // Get video thumbnail
           let thumbnailUrl = item.imageUrl;
           if (!thumbnailUrl && item.url) {
-            const embedUrl = getYouTubeEmbedUrl(item.url);
-            if (embedUrl) {
-              const videoId = embedUrl.split('/').pop();
-              thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-            }
+            thumbnailUrl = getVideoThumbnail(item.url);
           }
+          
+          // Check if it's Google Drive video
+          const isGoogleDrive = item.url.includes('drive.google.com');
           
           return `
             <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
@@ -857,24 +897,24 @@
                 ${thumbnailUrl ? `
                   <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/${item.url.includes('youtube.com') || item.url.includes('youtu.be') ? getYouTubeEmbedUrl(item.url)?.split('/').pop() : ''}/hqdefault.jpg';">
                 ` : `
-                  <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${primaryColor}40, ${primaryColor}80);">
+                  <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${isGoogleDrive ? '#4285f4' : primaryColor}40, ${isGoogleDrive ? '#34a853' : primaryColor}80);">
                     <div class="text-center">
-                      <div class="text-6xl mb-2">📹</div>
-                      <div class="text-sm font-semibold px-4" style="color: ${textColor};">คลิกเพื่อดูวิดีโอ</div>
+                      <div class="text-6xl mb-2">${isGoogleDrive ? '📁' : '📹'}</div>
+                      <div class="text-sm font-semibold px-4" style="color: ${textColor};">${isGoogleDrive ? 'Google Drive Video' : 'คลิกเพื่อดูวิดีโอ'}</div>
                     </div>
                   </div>
                 `}
                 <!-- Play Button Overlay -->
                 <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300">
-                  <div class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
+                  <div class="w-16 h-16 rounded-full ${isGoogleDrive ? 'bg-green-600' : 'bg-red-600'} flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
                     <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z"/>
                     </svg>
                   </div>
                 </div>
-                <!-- Duration Badge (Optional) -->
+                <!-- Source Badge -->
                 <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded font-semibold">
-                  🎬 วิดีโอ
+                  ${isGoogleDrive ? '📁 Google Drive' : '🎬 YouTube'}
                 </div>
               </div>
               <div class="p-6">
@@ -1003,12 +1043,10 @@
           const itemId = item.firebaseId || item.__backendId || item.id;
           let thumbnailUrl = item.imageUrl;
           if (!thumbnailUrl && item.url) {
-            const embedUrl = getYouTubeEmbedUrl(item.url);
-            if (embedUrl) {
-              const videoId = embedUrl.split('/').pop();
-              thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-            }
+            thumbnailUrl = getVideoThumbnail(item.url);
           }
+          
+          const isGoogleDrive = item.url.includes('drive.google.com');
           
           return `
             <div class="card-hover rounded-xl overflow-hidden shadow-lg cursor-pointer" style="background-color: ${surfaceColor};" onclick="viewContent('${itemId}')">
@@ -1016,12 +1054,12 @@
                 ${thumbnailUrl ? `
                   <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://img.youtube.com/vi/${item.url.includes('youtube.com') || item.url.includes('youtu.be') ? getYouTubeEmbedUrl(item.url)?.split('/').pop() : ''}/hqdefault.jpg';">
                 ` : `
-                  <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${primaryColor}40, ${primaryColor}80);">
-                    <div class="text-6xl">📹</div>
+                  <div class="w-full h-48 flex items-center justify-center" style="background: linear-gradient(135deg, ${isGoogleDrive ? '#4285f4' : primaryColor}40, ${isGoogleDrive ? '#34a853' : primaryColor}80);">
+                    <div class="text-6xl">${isGoogleDrive ? '📁' : '📹'}</div>
                   </div>
                 `}
                 <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-30 transition-all duration-300">
-                  <div class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
+                  <div class="w-16 h-16 rounded-full ${isGoogleDrive ? 'bg-green-600' : 'bg-red-600'} flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
                     <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z"/>
                     </svg>
@@ -1143,21 +1181,21 @@
           const typeName = item.type === 'video' ? 'วิดีโอ' : item.type === 'document' ? 'เอกสาร' : item.type === 'mindmap' ? 'มายแมพ' : 'แบบทดสอบ';
           const itemId = item.firebaseId || item.__backendId || item.id;
           return `
-            <div class="rounded-xl p-4 shadow-md hover:shadow-lg transition-all border-2 hover:scale-[1.02]" style="background-color: ${surfaceColor}; border-color: ${backgroundColor};">
+            <div class="rounded-xl p-4 shadow-md hover:shadow-lg transition-all border-2 hover:scale-[1.02] bg-white" style="border-color: #dbeafe;">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
                     <span class="text-2xl">${typeIcon}</span>
                     <div class="flex-1">
-                      <div class="font-bold text-sm" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">${item.title}</div>
-                      <div class="text-xs opacity-70 mt-1" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">
-                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: ${primaryColor}20; color: ${primaryColor};">${typeName}</span>
+                      <div class="font-bold text-sm text-blue-900" style="font-family: ${customFont}, ${baseFontStack};">${item.title}</div>
+                      <div class="text-xs mt-1" style="font-family: ${customFont}, ${baseFontStack};">
+                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">${typeName}</span>
                       </div>
                     </div>
                   </div>
-                  <p class="text-xs opacity-70 line-clamp-2 mt-2" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
+                  <p class="text-xs text-gray-600 line-clamp-2 mt-2" style="font-family: ${customFont}, ${baseFontStack};">${item.description}</p>
                 </div>
-                <button onclick="deleteContent('${itemId}')" class="px-4 py-2 rounded-lg text-xs font-bold hover:scale-110 transition-transform shadow-md hover:shadow-lg flex-shrink-0" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; font-family: ${customFont}, ${baseFontStack};">
+                <button onclick="deleteContent('${itemId}')" class="px-4 py-2 rounded-lg text-xs font-bold hover:scale-110 transition-transform shadow-md hover:shadow-lg flex-shrink-0 bg-gradient-to-r from-red-500 to-red-600 text-white" style="font-family: ${customFont}, ${baseFontStack};">
                   🗑️
                 </button>
               </div>
@@ -1246,7 +1284,10 @@
       const viewContent = document.getElementById('view-content');
       
       if (item.type === 'video') {
-        const embedUrl = getYouTubeEmbedUrl(item.url);
+        const youtubeEmbed = getYouTubeEmbedUrl(item.url);
+        const driveEmbed = getGoogleDriveVideoEmbedUrl(item.url);
+        const embedUrl = youtubeEmbed || driveEmbed;
+        const isGoogleDrive = item.url.includes('drive.google.com');
         
         if (embedUrl) {
           viewContent.innerHTML = `
@@ -1258,7 +1299,7 @@
                 <h4 class="font-bold mb-2 text-lg" style="color: ${primaryColor}; font-family: ${customFont}, ${baseFontStack};">เกี่ยวกับวิดีโอนี้</h4>
                 <p class="mb-4" style="color: ${textColor}; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize}px;">${item.description}</p>
                 <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform" style="background-color: ${primaryColor}; color: white; font-family: ${customFont}, ${baseFontStack}; font-size: ${baseSize * 0.9}px;">
-                  🔗 เปิดใน YouTube
+                  ${isGoogleDrive ? '📁 เปิดใน Google Drive' : '🔗 เปิดใน YouTube'}
                 </a>
               </div>
             </div>
@@ -1561,5 +1602,5 @@
 
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6d856672d45b7',t:'MTc2Mjc5MTI4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6f19e31df45b7',t:'MTc2Mjc5MjMyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
