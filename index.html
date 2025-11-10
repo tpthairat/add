@@ -264,120 +264,145 @@
            <p id="admin-subtitle" class="text-sm opacity-70">เพิ่ม แก้ไข และจัดการเนื้อหาทั้งหมด</p>
           </div>
          </div><button id="btn-close-modal" class="w-12 h-12 rounded-full hover:bg-opacity-10 hover:bg-black transition-all flex items-center justify-center text-3xl hover:scale-110">×</button>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><!-- Left Column: Add Content Form -->
-         <div>
-          <div class="rounded-xl p-6 shadow-lg border-2 bg-gradient-to-br from-purple-50 to-pink-50" style="border-color: #e9d5ff;">
-           <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl shadow">
-             ➕
+        </div><!-- Tab Navigation -->
+        <div class="flex gap-2 mb-6 border-b-2 border-gray-200"><button id="tab-content" class="tab-btn px-6 py-3 font-semibold transition-all border-b-4 border-purple-500 text-purple-600"> 📚 จัดการเนื้อหา </button> <button id="tab-users" class="tab-btn px-6 py-3 font-semibold transition-all border-b-4 border-transparent text-gray-500 hover:text-purple-600"> 👥 อนุมัติสมาชิก </button>
+        </div><!-- Content Management Tab -->
+        <div id="content-tab" class="tab-content">
+         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><!-- Left Column: Add Content Form -->
+          <div>
+           <div class="rounded-xl p-6 shadow-lg border-2 bg-gradient-to-br from-purple-50 to-pink-50" style="border-color: #e9d5ff;">
+            <div class="flex items-center gap-3 mb-6">
+             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl shadow">
+              ➕
+             </div>
+             <h3 id="form-title" class="font-bold text-xl text-purple-900">เพิ่มเนื้อหาใหม่</h3>
             </div>
-            <h3 id="form-title" class="font-bold text-xl text-purple-900">เพิ่มเนื้อหาใหม่</h3>
+            <form id="add-content-form" class="space-y-4">
+             <div><label for="content-type" id="label-type" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>📂</span> ประเภทเนื้อหา </label> <select id="content-type" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-semibold shadow-sm bg-white text-gray-900"> <option value="video">📹 วิดีโอบทเรียน (YouTube / Google Drive)</option> <option value="document">📄 เอกสารประกอบ</option> <option value="mindmap">🗺️ มายแมพความรู้</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
+             </div>
+             <div><label for="content-title" id="label-title" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>✏️</span> ชื่อเรื่อง </label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่องที่น่าสนใจ" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required>
+             </div>
+             <div><label for="content-description" id="label-desc" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>📝</span> คำอธิบาย </label> <textarea id="content-description" placeholder="อธิบายรายละเอียดเนื้อหา" rows="3" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required></textarea>
+             </div>
+             <div><label for="content-url" id="label-url" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>🔗</span> ลิงก์เนื้อหา </label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required>
+              <p id="url-hint" class="text-xs mt-2 text-purple-700 flex items-center gap-1"><span>💡</span> สำหรับวิดีโอ: ใส่ลิงก์ YouTube หรือ Google Drive</p>
+             </div>
+             <div><label for="content-image" id="label-image" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>🖼️</span> ลิงก์รูปภาพ <span class="text-xs text-purple-600">(ไม่บังคับ)</span> </label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900">
+             </div><button type="submit" id="btn-submit" class="w-full py-4 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-base bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl"> <span id="submit-text">➕ เพิ่มเนื้อหา</span>
+              <div id="submit-spinner" class="spinner hidden"></div></button>
+            </form>
            </div>
-           <form id="add-content-form" class="space-y-4">
-            <div><label for="content-type" id="label-type" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>📂</span> ประเภทเนื้อหา </label> <select id="content-type" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-semibold shadow-sm bg-white text-gray-900"> <option value="video">📹 วิดีโอบทเรียน (YouTube / Google Drive)</option> <option value="document">📄 เอกสารประกอบ</option> <option value="mindmap">🗺️ มายแมพความรู้</option> <option value="quiz">📝 แบบทดสอบ</option> </select>
+          </div><!-- Right Column: Content List -->
+          <div>
+           <div class="rounded-xl p-6 shadow-lg border-2 bg-gradient-to-br from-blue-50 to-cyan-50" style="border-color: #dbeafe;">
+            <div class="flex items-center justify-between mb-6">
+             <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl shadow">
+               📋
+              </div>
+              <div>
+               <h3 id="manage-title" class="font-bold text-xl text-blue-900">รายการเนื้อหา</h3>
+               <p id="content-count" class="text-xs text-blue-700">ทั้งหมด 0 รายการ</p>
+              </div>
+             </div>
             </div>
-            <div><label for="content-title" id="label-title" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>✏️</span> ชื่อเรื่อง </label> <input type="text" id="content-title" placeholder="ใส่ชื่อเรื่องที่น่าสนใจ" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required>
+            <div id="admin-content-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"><!-- Content items will be loaded here -->
             </div>
-            <div><label for="content-description" id="label-desc" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>📝</span> คำอธิบาย </label> <textarea id="content-description" placeholder="อธิบายรายละเอียดเนื้อหา" rows="3" class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required></textarea>
+            <div id="admin-empty" class="text-center py-16 hidden">
+             <div class="text-6xl mb-4">
+              📭
+             </div>
+             <p class="text-lg font-semibold text-blue-900">ยังไม่มีเนื้อหา</p>
+             <p class="text-sm mt-2 text-blue-700">เริ่มเพิ่มเนื้อหาแรกของคุณได้เลย!</p>
             </div>
-            <div><label for="content-url" id="label-url" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>🔗</span> ลิงก์เนื้อหา </label> <input type="url" id="content-url" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900" required>
-             <p id="url-hint" class="text-xs mt-2 text-purple-700 flex items-center gap-1"><span>💡</span> สำหรับวิดีโอ: ใส่ลิงก์ YouTube หรือ Google Drive</p>
-            </div>
-            <div><label for="content-image" id="label-image" class="block font-semibold mb-2 text-sm flex items-center gap-2 text-purple-900"> <span>🖼️</span> ลิงก์รูปภาพ <span class="text-xs text-purple-600">(ไม่บังคับ)</span> </label> <input type="url" id="content-image" placeholder="https://..." class="w-full px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm shadow-sm bg-white text-gray-900">
-            </div><button type="submit" id="btn-submit" class="w-full py-4 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-base bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl"> <span id="submit-text">➕ เพิ่มเนื้อหา</span>
-             <div id="submit-spinner" class="spinner hidden"></div></button>
-           </form>
+           </div>
           </div>
-         </div><!-- Right Column: Content List -->
-         <div>
+         </div><!-- User Approval Tab -->
+         <div id="users-tab" class="tab-content hidden">
           <div class="rounded-xl p-6 shadow-lg border-2 bg-gradient-to-br from-blue-50 to-cyan-50" style="border-color: #dbeafe;">
-           <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl shadow">
-              📋
-             </div>
-             <div>
-              <h3 id="manage-title" class="font-bold text-xl text-blue-900">รายการเนื้อหา</h3>
-              <p id="content-count" class="text-xs text-blue-700">ทั้งหมด 0 รายการ</p>
-             </div>
+           <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl shadow">
+             👥
+            </div>
+            <div>
+             <h3 class="font-bold text-xl text-blue-900">รายการรออนุมัติ</h3>
+             <p id="pending-count" class="text-xs text-blue-700">ทั้งหมด 0 รายการ</p>
             </div>
            </div>
-           <div id="admin-content-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"><!-- Content items will be loaded here -->
+           <div id="pending-users-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"><!-- Pending users will be loaded here -->
            </div>
-           <div id="admin-empty" class="text-center py-16 hidden">
+           <div id="pending-empty" class="text-center py-16">
             <div class="text-6xl mb-4">
-             📭
+             ✅
             </div>
-            <p class="text-lg font-semibold text-blue-900">ยังไม่มีเนื้อหา</p>
-            <p class="text-sm mt-2 text-blue-700">เริ่มเพิ่มเนื้อหาแรกของคุณได้เลย!</p>
+            <p class="text-lg font-semibold text-blue-900">ไม่มีรายการรออนุมัติ</p>
+            <p class="text-sm mt-2 text-blue-700">ผู้สมัครใหม่จะปรากฏที่นี่</p>
            </div>
           </div>
          </div>
         </div>
        </div>
       </div>
-     </div>
-    </div><!-- View Content Modal -->
-    <div id="view-modal" class="fixed inset-0 z-50 hidden">
-     <div class="modal-backdrop absolute inset-0" id="view-backdrop"></div>
-     <div class="relative min-h-full flex items-center justify-center p-4">
-      <div id="view-panel" class="rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90%] overflow-y-auto">
-       <div class="p-8">
-        <div class="flex justify-between items-center mb-6">
-         <h2 id="view-title" class="font-bold"></h2><button id="btn-close-view" class="text-3xl hover:scale-110 transition-transform">×</button>
-        </div>
-        <div id="view-content"></div>
-       </div>
-      </div>
-     </div>
-    </div><!-- Beautiful Footer -->
-    <footer id="footer" class="gradient-bg mt-auto">
-     <div class="max-w-7xl mx-auto px-6 py-12">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"><!-- About Section -->
-       <div>
-        <div class="flex items-center gap-3 mb-4">
-         <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-2xl border-2 border-white border-opacity-30">
-          👑
+     </div><!-- View Content Modal -->
+     <div id="view-modal" class="fixed inset-0 z-50 hidden">
+      <div class="modal-backdrop absolute inset-0" id="view-backdrop"></div>
+      <div class="relative min-h-full flex items-center justify-center p-4">
+       <div id="view-panel" class="rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90%] overflow-y-auto">
+        <div class="p-8">
+         <div class="flex justify-between items-center mb-6">
+          <h2 id="view-title" class="font-bold"></h2><button id="btn-close-view" class="text-3xl hover:scale-110 transition-transform">×</button>
          </div>
-         <div>
-          <h3 id="footer-title" class="font-bold text-white text-xl" style="letter-spacing: 1px;">THE ONE</h3>
-          <p class="text-white text-sm opacity-90">สอบราชการ</p>
-         </div>
-        </div>
-        <p id="footer-desc" class="text-white opacity-80 text-sm leading-relaxed">แพลตฟอร์มการเรียนรู้ออนไลน์ที่ครบครันสำหรับผู้เตรียมสอบราชการ พร้อมเนื้อหาคุณภาพและระบบจัดการที่ใช้งานง่าย</p>
-       </div><!-- Quick Links -->
-       <div>
-        <h4 id="footer-links-title" class="font-bold text-white mb-4 text-lg">เมนูด่วน</h4>
-        <ul class="space-y-2">
-         <li><button onclick="switchSection('video')" class="text-white opacity-80 hover:opacity-100 transition-opacity text-sm hover:underline"> 📹 วิดีโอบทเรียน </button></li>
-         <li><button onclick="switchSection('document')" class="text-white opacity-80 hover:opacity-100 transition-opacity text-sm hover:underline"> 📄 เอกสารประกอบ </button></li>
-         <li><button onclick="switchSection('mindmap')" class="text-white opacity-80 hover:opacity-100 transition-opacity text-sm hover:underline"> 🗺️ มายแมพความรู้ </button></li>
-        </ul>
-       </div><!-- Contact Info -->
-       <div>
-        <h4 id="footer-contact-title" class="font-bold text-white mb-4 text-lg">ติดต่อเรา</h4>
-        <ul class="space-y-3">
-         <li class="flex items-center gap-2 text-white opacity-80 text-sm"><span>📧</span> <span id="footer-email">info@theone-exam.com</span></li>
-         <li class="flex items-center gap-2 text-white opacity-80 text-sm"><span>📱</span> <span id="footer-phone">02-XXX-XXXX</span></li>
-         <li class="flex items-center gap-2 text-white opacity-80 text-sm"><span>🌐</span> <span id="footer-website">www.theone-exam.com</span></li>
-        </ul>
-       </div>
-      </div><!-- Bottom Bar -->
-      <div class="border-t border-white border-opacity-20 pt-6">
-       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <p id="footer-copyright" class="text-white opacity-70 text-sm text-center md:text-left">© 2024 THE ONE สอบราชการ. All rights reserved.</p>
-        <div class="flex items-center gap-4"><button id="btn-admin" class="px-6 py-2 rounded-full font-semibold transition-all duration-200 hover:scale-105 shadow-lg bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30 hover:bg-opacity-30 text-sm"> 🔐 เข้าสู่ระบบแอดมิน </button>
-         <div class="flex gap-2"><a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📘</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📷</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">🐦</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">▶️</span> </a>
-         </div>
+         <div id="view-content"></div>
         </div>
        </div>
       </div>
-     </div>
-    </footer>
+     </div><!-- Beautiful Footer -->
+     <footer id="footer" class="gradient-bg mt-auto">
+      <div class="max-w-7xl mx-auto px-6 py-12">
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"><!-- About Section -->
+        <div>
+         <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-2xl border-2 border-white border-opacity-30">
+           👑
+          </div>
+          <div>
+           <h3 id="footer-title" class="font-bold text-white text-xl" style="letter-spacing: 1px;">THE ONE</h3>
+           <p class="text-white text-sm opacity-90">สอบราชการ</p>
+          </div>
+         </div>
+         <p id="footer-desc" class="text-white opacity-80 text-sm leading-relaxed">แพลตฟอร์มการเรียนรู้ออนไลน์ที่ครบครันสำหรับผู้เตรียมสอบราชการ พร้อมเนื้อหาคุณภาพและระบบจัดการที่ใช้งานง่าย</p>
+        </div><!-- Quick Links -->
+        <div>
+         <h4 id="footer-links-title" class="font-bold text-white mb-4 text-lg">เมนูด่วน</h4>
+         <ul class="space-y-2">
+          <li><button onclick="switchSection('video')" class="text-white opacity-80 hover:opacity-100 transition-opacity text-sm hover:underline"> 📹 วิดีโอบทเรียน </button></li>
+          <li><button onclick="switchSection('document')" class="text-white opacity-80 hover:opacity-100 transition-opacity text-sm hover:underline"> 📄 เอกสารประกอบ </button></li>
+          <li><button onclick="switchSection('mindmap')" class="text-white opacity-80 hover:opacity-100 transition-opacity text-sm hover:underline"> 🗺️ มายแมพความรู้ </button></li>
+         </ul>
+        </div><!-- Contact Info -->
+        <div>
+         <h4 id="footer-contact-title" class="font-bold text-white mb-4 text-lg">ติดต่อเรา</h4>
+         <ul class="space-y-3">
+          <li class="flex items-center gap-2 text-white opacity-80 text-sm"><span>📧</span> <span id="footer-email">info@theone-exam.com</span></li>
+          <li class="flex items-center gap-2 text-white opacity-80 text-sm"><span>📱</span> <span id="footer-phone">02-XXX-XXXX</span></li>
+          <li class="flex items-center gap-2 text-white opacity-80 text-sm"><span>🌐</span> <span id="footer-website">www.theone-exam.com</span></li>
+         </ul>
+        </div>
+       </div><!-- Bottom Bar -->
+       <div class="border-t border-white border-opacity-20 pt-6">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+         <p id="footer-copyright" class="text-white opacity-70 text-sm text-center md:text-left">© 2024 THE ONE สอบราชการ. All rights reserved.</p>
+         <div class="flex items-center gap-4"><button id="btn-admin" class="px-6 py-2 rounded-full font-semibold transition-all duration-200 hover:scale-105 shadow-lg bg-white bg-opacity-20 backdrop-blur-sm text-white border-2 border-white border-opacity-30 hover:bg-opacity-30 text-sm"> 🔐 เข้าสู่ระบบแอดมิน </button>
+          <div class="flex gap-2"><a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📘</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">📷</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">🐦</span> </a> <a href="#" class="w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-opacity-30 transition-all hover:scale-110 border border-white border-opacity-30"> <span class="text-lg">▶️</span> </a>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </footer>
+    </div>
    </div>
-  </div>
-  <script>
+   <script>
     // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDht0H3DLh47FJREAzVkStw9BHkB2LI-3w",
@@ -421,16 +446,45 @@
     let currentSection = 'home';
     let isLoggedIn = false;
     let unsubscribeFirestore = null;
+    let unsubscribePendingUsers = null;
+    let pendingUsers = [];
 
     // Login System
     async function handleLogin(email, password) {
-      if (!auth) {
+      if (!auth || !db) {
         showToast('ระบบยังไม่พร้อม', 'error');
         return false;
       }
 
       try {
-        await auth.signInWithEmailAndPassword(email, password);
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Check if user is approved
+        const userDoc = await db.collection('approved-users').doc(user.uid).get();
+        
+        if (!userDoc.exists) {
+          // Check if user is still pending
+          const pendingDoc = await db.collection('pending-users').doc(user.uid).get();
+          
+          if (pendingDoc.exists && pendingDoc.data().status === 'pending') {
+            await auth.signOut();
+            document.getElementById('login-error').textContent = 'บัญชีของคุณรอการอนุมัติจากแอดมิน';
+            document.getElementById('login-error').classList.remove('hidden');
+            return false;
+          } else if (pendingDoc.exists && pendingDoc.data().status === 'rejected') {
+            await auth.signOut();
+            document.getElementById('login-error').textContent = 'บัญชีของคุณถูกปฏิเสธ';
+            document.getElementById('login-error').classList.remove('hidden');
+            return false;
+          } else {
+            await auth.signOut();
+            document.getElementById('login-error').textContent = 'บัญชีของคุณยังไม่ได้รับการอนุมัติ';
+            document.getElementById('login-error').classList.remove('hidden');
+            return false;
+          }
+        }
+        
         return true;
       } catch (error) {
         console.error('Login error:', error);
@@ -453,7 +507,7 @@
     }
 
     async function handleRegister(email, password, confirmPassword) {
-      if (!auth) {
+      if (!auth || !db) {
         showToast('ระบบยังไม่พร้อม', 'error');
         return false;
       }
@@ -471,8 +525,21 @@
       }
 
       try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        showToast('สมัครสมาชิกสำเร็จ!', 'success');
+        // Create user account
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Add user to pending approval collection
+        await db.collection('pending-users').doc(user.uid).set({
+          email: email,
+          status: 'pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Sign out immediately - user must wait for approval
+        await auth.signOut();
+        
+        showToast('สมัครสมาชิกสำเร็จ! รอแอดมินอนุมัติ', 'success');
         return true;
       } catch (error) {
         console.error('Register error:', error);
@@ -766,6 +833,119 @@
           showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
         });
     }
+
+    function loadPendingUsers() {
+      if (!db) return;
+
+      unsubscribePendingUsers = db.collection('pending-users')
+        .where('status', '==', 'pending')
+        .orderBy('createdAt', 'desc')
+        .onSnapshot((snapshot) => {
+          pendingUsers = [];
+          snapshot.forEach((doc) => {
+            pendingUsers.push({
+              uid: doc.id,
+              ...doc.data()
+            });
+          });
+          renderPendingUsers();
+        }, (error) => {
+          console.error('Error loading pending users:', error);
+        });
+    }
+
+    function renderPendingUsers() {
+      const pendingList = document.getElementById('pending-users-list');
+      const pendingEmpty = document.getElementById('pending-empty');
+      const pendingCount = document.getElementById('pending-count');
+
+      if (pendingCount) {
+        pendingCount.textContent = `ทั้งหมด ${pendingUsers.length} รายการ`;
+      }
+
+      if (pendingUsers.length === 0) {
+        pendingList.innerHTML = '';
+        pendingEmpty.classList.remove('hidden');
+      } else {
+        pendingEmpty.classList.add('hidden');
+        pendingList.innerHTML = pendingUsers.map(user => {
+          const createdDate = user.createdAt ? new Date(user.createdAt.toDate()).toLocaleDateString('th-TH', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : 'ไม่ทราบวันที่';
+
+          return `
+            <div class="rounded-xl p-4 shadow-md hover:shadow-lg transition-all border-2 bg-white" style="border-color: #dbeafe;">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">👤</span>
+                    <div class="flex-1">
+                      <div class="font-bold text-sm text-blue-900">${user.email}</div>
+                      <div class="text-xs text-gray-600 mt-1">สมัครเมื่อ: ${createdDate}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                  <button onclick="approveUser('${user.uid}', '${user.email}')" class="px-4 py-2 rounded-lg text-xs font-bold hover:scale-110 transition-transform shadow-md hover:shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
+                    ✅ อนุมัติ
+                  </button>
+                  <button onclick="rejectUser('${user.uid}')" class="px-4 py-2 rounded-lg text-xs font-bold hover:scale-110 transition-transform shadow-md hover:shadow-lg bg-gradient-to-r from-red-500 to-red-600 text-white">
+                    ❌ ปฏิเสธ
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    async function approveUser(uid, email) {
+      if (!db) return;
+
+      try {
+        // Add to approved users
+        await db.collection('approved-users').doc(uid).set({
+          email: email,
+          approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Update pending status
+        await db.collection('pending-users').doc(uid).update({
+          status: 'approved',
+          approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        showToast('อนุมัติสมาชิกสำเร็จ!', 'success');
+      } catch (error) {
+        console.error('Error approving user:', error);
+        showToast('เกิดข้อผิดพลาดในการอนุมัติ', 'error');
+      }
+    }
+
+    async function rejectUser(uid) {
+      if (!db) return;
+
+      try {
+        // Update pending status to rejected
+        await db.collection('pending-users').doc(uid).update({
+          status: 'rejected',
+          rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        showToast('ปฏิเสธสมาชิกแล้ว', 'success');
+      } catch (error) {
+        console.error('Error rejecting user:', error);
+        showToast('เกิดข้อผิดพลาดในการปฏิเสธ', 'error');
+      }
+    }
+
+    window.approveUser = approveUser;
+    window.rejectUser = rejectUser;
 
     async function addContentToFirebase(contentData) {
       if (!db) {
@@ -1460,14 +1640,58 @@
     document.getElementById('btn-mindmap').addEventListener('click', () => switchSection('mindmap'));
     document.getElementById('btn-quiz').addEventListener('click', () => switchSection('quiz'));
 
-    document.getElementById('btn-admin').addEventListener('click', () => {
+    document.getElementById('btn-admin').addEventListener('click', async () => {
       // Check if user is logged in with Firebase
       if (currentUser) {
-        // User is logged in, go directly to admin panel
-        document.getElementById('admin-modal').classList.remove('hidden');
+        // Check if user is admin
+        if (db) {
+          try {
+            const adminDoc = await db.collection('admins').doc(currentUser.uid).get();
+            if (adminDoc.exists) {
+              // User is admin, open admin panel
+              document.getElementById('admin-modal').classList.remove('hidden');
+              loadPendingUsers();
+            } else {
+              // User is not admin
+              showToast('คุณไม่มีสิทธิ์เข้าถึงหน้าจัดการ', 'error');
+            }
+          } catch (error) {
+            console.error('Error checking admin status:', error);
+            showToast('เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์', 'error');
+          }
+        }
       } else {
         // User not logged in, show message
         showToast('กรุณาเข้าสู่ระบบก่อนเข้าหน้าจัดการ', 'error');
+      }
+    });
+
+    document.getElementById('tab-content').addEventListener('click', () => {
+      // Switch to content tab
+      document.getElementById('content-tab').classList.remove('hidden');
+      document.getElementById('users-tab').classList.add('hidden');
+      
+      // Update tab styles
+      document.getElementById('tab-content').classList.remove('border-transparent', 'text-gray-500');
+      document.getElementById('tab-content').classList.add('border-purple-500', 'text-purple-600');
+      document.getElementById('tab-users').classList.remove('border-purple-500', 'text-purple-600');
+      document.getElementById('tab-users').classList.add('border-transparent', 'text-gray-500');
+    });
+
+    document.getElementById('tab-users').addEventListener('click', () => {
+      // Switch to users tab
+      document.getElementById('content-tab').classList.add('hidden');
+      document.getElementById('users-tab').classList.remove('hidden');
+      
+      // Update tab styles
+      document.getElementById('tab-users').classList.remove('border-transparent', 'text-gray-500');
+      document.getElementById('tab-users').classList.add('border-purple-500', 'text-purple-600');
+      document.getElementById('tab-content').classList.remove('border-purple-500', 'text-purple-600');
+      document.getElementById('tab-content').classList.add('border-transparent', 'text-gray-500');
+      
+      // Load pending users
+      if (db) {
+        loadPendingUsers();
       }
     });
 
@@ -1598,9 +1822,13 @@
       if (unsubscribeFirestore) {
         unsubscribeFirestore();
       }
+      if (unsubscribePendingUsers) {
+        unsubscribePendingUsers();
+      }
     });
 
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6f19e31df45b7',t:'MTc2Mjc5MjMyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </div>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c6fe21351445b7',t:'MTc2Mjc5MjgzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
